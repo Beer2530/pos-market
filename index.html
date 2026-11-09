@@ -30,11 +30,12 @@ td{padding:8px;border-bottom:1px solid var(--b)}.wrap{overflow-x:auto}
 .tag{padding:2px 8px;border-radius:6px;font-size:12px;color:#fff}
 #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:99px;display:none;z-index:9}
 </style></head><body>
-<header><h1>🛒 ร้านค้า POS</h1><nav id="nav"></nav><span id="sync" style="margin-left:auto;font-size:12px"></span></header>
+<header><h1>🛒 ร้านค้า POS</h1><nav id="nav"></nav><span style="margin-left:auto;display:flex;gap:8px;align-items:center"><span id="sync" style="font-size:12px"></span><button class="chip" onclick="setApi()">⚙️ เชื่อม Google Sheets</button></span></header>
 <main id="app"></main><div id="toast"></div>
 <script>
-// ใส่ URL ของ Apps Script Web App ที่นี่ เพื่อเชื่อม Google Sheets / Drive (ดูวิธีใน Code.gs)
-const API_URL='';
+// กดปุ่ม ⚙️ เชื่อม Google Sheets มุมขวาบน แล้ววาง URL ของ Apps Script (ดูวิธีใน Code.gs)
+let API_URL='';try{API_URL=localStorage.getItem('pos_api')||''}catch(e){}
+function setApi(){const u=prompt('วาง URL ของ Apps Script Web App (ลงท้าย /exec)\nเว้นว่างเพื่อยกเลิกการเชื่อมต่อ',API_URL);if(u===null)return;try{u.trim()?localStorage.setItem('pos_api',u.trim()):localStorage.removeItem('pos_api')}catch(e){}location.reload()}
 const K='pos_v1';let S={products:[],sales:[]},cart={},cat='ทั้งหมด',tab='pos',q='',edit=null;
 const $=s=>document.querySelector(s),fmt=n=>(+n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
