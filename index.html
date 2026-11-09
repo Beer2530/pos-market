@@ -34,7 +34,8 @@ td{padding:8px;border-bottom:1px solid var(--b)}.wrap{overflow-x:auto}
 <main id="app"></main><div id="toast"></div>
 <script>
 // กดปุ่ม ⚙️ เชื่อม Google Sheets มุมขวาบน แล้ววาง URL ของ Apps Script (ดูวิธีใน Code.gs)
-let API_URL='';try{API_URL=localStorage.getItem('pos_api')||''}catch(e){}
+const DEFAULT_API='https://script.google.com/macros/s/AKfycbyA3SBusE0UrbshW2ZnQYvdg4ZCc4tRFHoCZfpmVyNqR5Ng2NENE5Mhdn_4B0XkIHBc/exec';
+let API_URL=DEFAULT_API;try{API_URL=localStorage.getItem('pos_api')||DEFAULT_API}catch(e){}
 function setApi(){const u=prompt('วาง URL ของ Apps Script Web App (ลงท้าย /exec)\nเว้นว่างเพื่อยกเลิกการเชื่อมต่อ',API_URL);if(u===null)return;try{u.trim()?localStorage.setItem('pos_api',u.trim()):localStorage.removeItem('pos_api')}catch(e){}location.reload()}
 const K='pos_v1';let S={products:[],sales:[]},cart={},cat='ทั้งหมด',tab='pos',q='',edit=null;
 const $=s=>document.querySelector(s),fmt=n=>(+n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
