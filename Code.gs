@@ -41,6 +41,11 @@ function doPost(e) {
     sh('Sales', SH).appendRow([s.id, s.date, JSON.stringify(s.items), s.total, s.pay, s.received]);
     writeProducts(d.products);
   }
+  if (d.action == 'ping') {
+    let f = '';
+    try { f = DriveApp.getFolderById(FOLDER).getName(); } catch (err) {}
+    return out({ ok: 1, sheet: SpreadsheetApp.openById(SS).getName(), folder: f });
+  }
   if (d.action == 'image') {
     const f = DriveApp.getFolderById(FOLDER).createFile(Utilities.newBlob(Utilities.base64Decode(d.data), d.mime, d.name));
     f.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);

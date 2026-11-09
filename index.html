@@ -1,71 +1,91 @@
 <!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ร้านค้า POS</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eef3fb;--c:#fff;--t:#1b2a41;--p:#1565d8;--m:#6b7a90;--b:#dbe3ef;--ok:#16a34a;--bad:#dc2626;--w:#f59e0b}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1624;--c:#18233a;--t:#e8eefb;--m:#93a3bd;--b:#2a3856}}
-*{box-sizing:border-box}body{margin:0;font-family:'Sarabun',system-ui,sans-serif;background:var(--bg);color:var(--t)}
-header{background:linear-gradient(90deg,#0b4fb3,#1e7cf0);color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-header h1{margin:0;font-size:20px}nav{display:flex;gap:6px;flex-wrap:wrap}
-nav button{background:rgba(255,255,255,.18);color:#fff;border:0;padding:8px 14px;border-radius:8px;font:inherit;cursor:pointer}
-nav button.on{background:#fff;color:var(--p);font-weight:700}
-main{padding:14px;max-width:1300px;margin:auto}.card{background:var(--c);border:1px solid var(--b);border-radius:12px;padding:14px}
-.pos{display:grid;grid-template-columns:1fr 360px;gap:14px}@media(max-width:850px){.pos{grid-template-columns:1fr}}
-input,select{font:inherit;padding:9px;border:1px solid var(--b);border-radius:8px;background:var(--c);color:var(--t);width:100%}
-button.b{background:var(--p);color:#fff;border:0;border-radius:8px;padding:10px 14px;font:inherit;cursor:pointer}
-button.g{background:var(--ok)}button.r{background:var(--bad)}button.o{background:var(--w)}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.chip{padding:6px 12px;border-radius:99px;border:1px solid var(--b);background:var(--c);color:var(--t);cursor:pointer;font:inherit}
+:root{--bg:#f4f6fb;--c:#fff;--t:#0f1b33;--m:#64748b;--b:#e5e9f2;--p:#4f46e5;--p2:#06b6d4;--ok:#10b981;--bad:#ef4444;--w:#f59e0b;--sh:0 1px 2px rgba(15,27,51,.05),0 8px 24px rgba(15,27,51,.06);--r:16px}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1120;--c:#131c31;--t:#e8edf8;--m:#8d9bb5;--b:#222e49;--sh:0 8px 24px rgba(0,0,0,.35)}}
+*{box-sizing:border-box}body{margin:0;font-family:'Sarabun',system-ui,sans-serif;background:var(--bg);color:var(--t);font-size:15px}
+header{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--c) 85%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--b);padding:10px 20px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}.brand h1{margin:0;font-size:19px;font-weight:700}
+.lg{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--p),var(--p2));display:grid;place-items:center;color:#fff}
+svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+nav{display:flex;gap:4px;background:var(--bg);padding:4px;border-radius:12px;flex-wrap:wrap}
+nav button{display:flex;align-items:center;gap:7px;background:none;border:0;color:var(--m);padding:8px 14px;border-radius:9px;font:inherit;font-weight:500;cursor:pointer;transition:.15s}
+nav button:hover{color:var(--t)}nav button.on{background:var(--c);color:var(--p);box-shadow:var(--sh)}
+.hr{margin-left:auto;display:flex;gap:8px;align-items:center}
+.sy{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--m);cursor:pointer;padding:7px 12px;border-radius:99px;background:var(--bg)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--m);display:inline-block;flex:none}.dot.ok{background:var(--ok);box-shadow:0 0 0 3px #10b98133}.dot.bad{background:var(--bad)}.dot.warn{background:var(--w)}
+main{padding:18px 20px;max-width:1360px;margin:auto}
+.card{background:var(--c);border:1px solid var(--b);border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+.pos{display:grid;grid-template-columns:1fr 380px;gap:18px}@media(max-width:900px){.pos{grid-template-columns:1fr}}
+input,select{font:inherit;padding:10px 12px;border:1px solid var(--b);border-radius:12px;background:var(--c);color:var(--t);width:100%;outline:0;transition:.15s}
+input:focus,select:focus{border-color:var(--p);box-shadow:0 0 0 3px #4f46e522}
+.sr{position:relative}.sr svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--m)}.sr input{padding-left:42px;height:46px;box-shadow:var(--sh)}
+button.b{background:var(--p);color:#fff;border:0;border-radius:12px;padding:10px 16px;font:inherit;font-weight:600;cursor:pointer;transition:.15s}
+button.b:hover{filter:brightness(1.08);transform:translateY(-1px)}
+button.g{background:linear-gradient(135deg,#10b981,#059669)}button.r{background:#fee2e2;color:#dc2626}button.o{background:#fef3c7;color:#b45309}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.chip{padding:7px 16px;border-radius:99px;border:1px solid var(--b);background:var(--c);color:var(--m);cursor:pointer;font:inherit;font-weight:500}
 .chip.on{background:var(--p);color:#fff;border-color:var(--p)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
-.pr{background:var(--c);border:1px solid var(--b);border-radius:12px;padding:10px;text-align:center;cursor:pointer}
-.pr:hover{border-color:var(--p)}.pr.out{opacity:.45}.ic{height:70px;display:flex;align-items:center;justify-content:center;font-size:48px}
-.ic img{max-height:70px;max-width:100%;border-radius:8px}.pr b{display:block;font-size:14px;min-height:36px}
-.pr .p{color:var(--p);font-weight:700}.pr small{color:var(--m)}
-table{width:100%;border-collapse:collapse;font-size:14px}th{background:var(--p);color:#fff;text-align:left;padding:8px}
-td{padding:8px;border-bottom:1px solid var(--b)}.wrap{overflow-x:auto}
-.ci{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--b)}.ci span{flex:1;font-size:14px}
-.ci button{width:28px;height:28px;border-radius:6px;border:1px solid var(--b);background:var(--c);color:var(--t);cursor:pointer}
-.tot{font-size:32px;font-weight:700;color:var(--p);text-align:right}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:12px}
-.st{border-radius:12px;padding:14px;color:#fff}.st small{opacity:.9}.st div{font-size:24px;font-weight:700}
-.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;align-items:end}.f label{font-size:12px;color:var(--m)}
-.tag{padding:2px 8px;border-radius:6px;font-size:12px;color:#fff}
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 18px;border-radius:99px;display:none;z-index:9}
-</style></head><body>
-<header><h1>🛒 ร้านค้า POS</h1><nav id="nav"></nav><span style="margin-left:auto;display:flex;gap:8px;align-items:center"><span id="sync" style="font-size:12px"></span><button class="chip" onclick="setApi()">⚙️ เชื่อม Google Sheets</button></span></header>
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.pr{background:var(--c);border:1px solid var(--b);border-radius:var(--r);padding:14px;cursor:pointer;box-shadow:var(--sh);transition:.15s}
+.pr:hover{transform:translateY(-3px);border-color:var(--p)}.pr.out{opacity:.45;pointer-events:none}
+.ic{height:84px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}.ic img{max-height:84px;max-width:100%;border-radius:12px;object-fit:cover}
+.tile{width:72px;height:72px;border-radius:20px;display:grid;place-items:center;font-size:32px;font-weight:700;background:hsl(var(--h) 85% 92%);color:hsl(var(--h) 60% 38%)}
+.pr b{display:block;font-size:14px;font-weight:600;min-height:38px;line-height:1.3}.pr .p{color:var(--p);font-weight:700;font-size:18px;margin-top:4px}.pr small{color:var(--m)}
+table{width:100%;border-collapse:collapse;font-size:14px}th{color:var(--m);font-weight:600;font-size:12px;text-align:left;padding:10px 12px;border-bottom:1px solid var(--b)}
+td{padding:12px;border-bottom:1px solid var(--b)}tr:last-child td{border:0}.wrap{overflow-x:auto}td .b{padding:6px 11px;font-size:13px;border-radius:9px}
+.ci{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px dashed var(--b)}.ci span{flex:1;font-size:14px}
+.ci button{width:30px;height:30px;border-radius:9px;border:1px solid var(--b);background:var(--bg);color:var(--t);cursor:pointer;font-size:16px}
+.tot{font-size:36px;font-weight:700;text-align:right;background:linear-gradient(90deg,var(--p),var(--p2));-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:8px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px}
+.st{background:var(--a);border-radius:var(--r);padding:18px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--sh)}
+.st::after{content:"";position:absolute;right:-24px;top:-24px;width:96px;height:96px;border-radius:50%;background:#ffffff30}
+.st small{opacity:.9}.st div{font-size:26px;font-weight:700;margin-top:4px}
+.f{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;align-items:end}.f label{font-size:12px;color:var(--m);font-weight:500;display:block;margin-bottom:4px}
+.tag{padding:3px 10px;border-radius:99px;font-size:12px;color:#fff;font-weight:600}
+.ov{position:fixed;inset:0;background:#0008;display:grid;place-items:center;z-index:20;padding:16px}.md{background:var(--c);border-radius:20px;padding:22px;width:min(480px,100%)}
+.md h3{margin:0 0 12px}.dg{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--b);align-items:flex-start}.dg .dot{margin-top:6px}.dg small{display:block;color:var(--m)}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--t);color:var(--bg);padding:11px 20px;border-radius:99px;display:none;z-index:30;box-shadow:var(--sh)}
+</style>
+</head><body>
+<header><div class="brand"><span class="lg"><svg class="i" style="width:22px;height:22px" viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9M3 9v11h18V9M3 9c0 2 3 2 3 0M6 9c0 2 3 2 3 0M9 9c0 2 3 2 3 0M12 9c0 2 3 2 3 0M15 9c0 2 3 2 3 0M18 9c0 2 3 2 3 0"/></svg></span><h1>ร้านค้า POS</h1></div><nav id="nav"></nav><div class="hr"><span id="sync" class="sy" onclick="diag()" title="ตรวจสอบการเชื่อมต่อ"></span><button class="b" onclick="setApi()" style="display:flex;gap:6px;align-items:center"><svg class="i" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>เชื่อม Google Sheets</button></div></header>
 <main id="app"></main><div id="toast"></div>
 <script>
-// กดปุ่ม ⚙️ เชื่อม Google Sheets มุมขวาบน แล้ววาง URL ของ Apps Script (ดูวิธีใน Code.gs)
+// กดปุ่ม เชื่อม Google Sheets มุมขวาบน แล้ววาง URL ของ Apps Script (ดูวิธีใน Code.gs)
 const DEFAULT_API='https://script.google.com/macros/s/AKfycbyA3SBusE0UrbshW2ZnQYvdg4ZCc4tRFHoCZfpmVyNqR5Ng2NENE5Mhdn_4B0XkIHBc/exec';
 let API_URL=DEFAULT_API;try{API_URL=localStorage.getItem('pos_api')||DEFAULT_API}catch(e){}
 function setApi(){const u=prompt('วาง URL ของ Apps Script Web App (ลงท้าย /exec)\nเว้นว่างเพื่อยกเลิกการเชื่อมต่อ',API_URL);if(u===null)return;try{u.trim()?localStorage.setItem('pos_api',u.trim()):localStorage.removeItem('pos_api')}catch(e){}location.reload()}
 const K='pos_v1';let S={products:[],sales:[]},cart={},cat='ทั้งหมด',tab='pos',q='',edit=null;
 const $=s=>document.querySelector(s),fmt=n=>(+n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const IC={cart:'<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h8.9a1 1 0 0 0 1-.8L20.5 8H6"/>',receipt:'<path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',box:'<path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>'};
+const I=n=>`<svg class="i" viewBox="0 0 24 24">${IC[n]}</svg>`;
 const seed=()=>[
-{id:'p1',name:'ไข่ไก่ เบอร์ 2 (แผง 30 ฟอง)',cat:'ไข่',price:105,cost:90,stock:40,unit:'แผง',img:'🥚'},
-{id:'p2',name:'ไข่ไก่ เบอร์ 3 (แผง 30 ฟอง)',cat:'ไข่',price:98,cost:84,stock:30,unit:'แผง',img:'🥚'},
-{id:'p3',name:'ข้าวสาร หอมมะลิ 5 กก.',cat:'ข้าวสาร',price:185,cost:160,stock:25,unit:'ถุง',img:'🍚'},
-{id:'p4',name:'ข้าวสาร หอมมะลิ 15 กก.',cat:'ข้าวสาร',price:520,cost:470,stock:12,unit:'ถุง',img:'🌾'},
-{id:'p5',name:'น้ำดื่ม 600 มล.',cat:'น้ำดื่ม',price:7,cost:4.5,stock:120,unit:'ขวด',img:'💧'},
-{id:'p6',name:'น้ำดื่ม 1.5 ลิตร',cat:'น้ำดื่ม',price:14,cost:10,stock:60,unit:'ขวด',img:'🚰'},
-{id:'p7',name:'น้ำดื่มแพ็ก 12 ขวด',cat:'น้ำดื่ม',price:68,cost:55,stock:4,unit:'แพ็ก',img:'🧴'}];
+{id:'p1',name:'ไข่ไก่ เบอร์ 2 (แผง 30 ฟอง)',cat:'ไข่',price:105,cost:90,stock:40,unit:'แผง',img:''},
+{id:'p2',name:'ไข่ไก่ เบอร์ 3 (แผง 30 ฟอง)',cat:'ไข่',price:98,cost:84,stock:30,unit:'แผง',img:''},
+{id:'p3',name:'ข้าวสาร หอมมะลิ 5 กก.',cat:'ข้าวสาร',price:185,cost:160,stock:25,unit:'ถุง',img:''},
+{id:'p4',name:'ข้าวสาร หอมมะลิ 15 กก.',cat:'ข้าวสาร',price:520,cost:470,stock:12,unit:'ถุง',img:''},
+{id:'p5',name:'น้ำดื่ม 600 มล.',cat:'น้ำดื่ม',price:7,cost:4.5,stock:120,unit:'ขวด',img:''},
+{id:'p6',name:'น้ำดื่ม 1.5 ลิตร',cat:'น้ำดื่ม',price:14,cost:10,stock:60,unit:'ขวด',img:''},
+{id:'p7',name:'น้ำดื่มแพ็ก 12 ขวด',cat:'น้ำดื่ม',price:68,cost:55,stock:4,unit:'แพ็ก',img:''}];
 function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2200)}
 function post(b){if(!API_URL)return Promise.resolve();return fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(b)}).then(r=>r.json()).catch(()=>{toast('ซิงค์ Google Sheets ไม่สำเร็จ')})}
 function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
 async function load(){
  try{const d=JSON.parse(localStorage.getItem(K));if(d&&d.products)S=d}catch(e){}
  if(!S.products.length)S.products=seed();
- if(API_URL){try{const d=await(await fetch(API_URL)).json();if(d.products&&d.products.length){S.products=d.products.map(p=>({...p,price:+p.price,cost:+p.cost,stock:+p.stock}));S.sales=d.sales||[];save()}else post({action:'products',products:S.products});$('#sync').textContent='🟢 เชื่อม Google Sheets แล้ว'}catch(e){$('#sync').textContent='🔴 เชื่อมต่อไม่ได้ (ใช้ข้อมูลในเครื่อง)'}}
- else $('#sync').textContent='💾 บันทึกในเบราว์เซอร์ (ยังไม่ได้เชื่อม Sheets)';
+ if(API_URL){try{const d=await(await fetch(API_URL)).json();if(d.products&&d.products.length){S.products=d.products.map(p=>({...p,price:+p.price,cost:+p.cost,stock:+p.stock}));S.sales=d.sales||[];save()}else post({action:'products',products:S.products});$('#sync').innerHTML='<i class="dot ok"></i>เชื่อม Google Sheets แล้ว'}catch(e){$('#sync').innerHTML='<i class="dot bad"></i>เชื่อมต่อไม่ได้ (ใช้ข้อมูลในเครื่อง)'}}
+ else $('#sync').innerHTML='<i class="dot warn"></i>บันทึกในเบราว์เซอร์ (ยังไม่ได้เชื่อม Sheets)';
  render()}
-const icon=p=>/^(data:|http)/.test(p.img||'')?`<img src="${esc(p.img)}" alt="">`:esc(p.img||'📦');
+const hue=t=>[...String(t||'')].reduce((a,c)=>a+c.charCodeAt(0)*7,0)%360;
+const icon=p=>/^(data:|http)/.test(p.img||'')?`<img src="${esc(p.img)}" alt="">`:`<span class="tile" style="--h:${hue(p.cat)}">${esc((String(p.name||'').match(/[ก-ฮA-Za-z0-9]/)||['?'])[0])}</span>`;
 const cats=()=>['ทั้งหมด',...new Set(S.products.map(p=>p.cat).filter(Boolean))];
 const P=id=>S.products.find(p=>p.id==id);
 const cartTotal=()=>Object.entries(cart).reduce((s,[id,n])=>s+(P(id)?.price||0)*n,0);
 function render(){
- $('#nav').innerHTML=[['pos','🛒 ขายสินค้า'],['hist','🧾 ประวัติการขาย'],['dash','📊 แดชบอร์ด'],['prod','📦 จัดการสินค้า/สต็อก']].map(([k,l])=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('');
+ $('#nav').innerHTML=[['pos','cart','ขายสินค้า'],['hist','receipt','ประวัติการขาย'],['dash','chart','แดชบอร์ด'],['prod','box','สินค้า / สต็อก']].map(([k,ic,l])=>`<button class="${tab==k?'on':''}" onclick="tab='${k}';render()">${I(ic)}<span>${l}</span></button>`).join('');
  ({pos:vPos,hist:vHist,dash:vDash,prod:vProd})[tab]()}
 function vPos(){
- $('#app').innerHTML=`<div class="pos"><div><input id="qs" placeholder="🔍 ค้นหาสินค้า / สแกนบาร์โค้ด (ใส่รหัสสินค้าแล้ว Enter)" value="${esc(q)}">
+ $('#app').innerHTML=`<div class="pos"><div><div class="sr">${I('search')}<input id="qs" placeholder="ค้นหาสินค้า หรือสแกนบาร์โค้ด แล้วกด Enter" value="${esc(q)}"></div>
  <div class="chips">${cats().map(c=>`<button class="chip ${c==cat?'on':''}" onclick="cat='${esc(c)}';render()">${esc(c)}</button>`).join('')}</div><div class="grid" id="g"></div></div>
  <div class="card" style="align-self:start;position:sticky;top:8px"><h3 style="margin:0 0 6px">ตะกร้าสินค้า</h3><div id="cl"></div>
  <div class="tot" id="tt"></div>
@@ -93,31 +113,43 @@ async function checkout(){
 const D=s=>new Date(s),sameDay=(a,b)=>D(a).toDateString()==D(b).toDateString();
 function vHist(){
  const l=[...S.sales].reverse().slice(0,200),td=S.sales.filter(s=>sameDay(s.date,new Date()));
- $('#app').innerHTML=`<div class="stats"><div class="st" style="background:#16a34a"><small>ยอดขายวันนี้</small><div>฿${fmt(td.reduce((a,s)=>a+ +s.total,0))}</div></div><div class="st" style="background:#1565d8"><small>จำนวนบิลวันนี้</small><div>${td.length}</div></div></div>
+ $('#app').innerHTML=`<div class="stats"><div class="st" style="--a:#10b981"><small>ยอดขายวันนี้</small><div>฿${fmt(td.reduce((a,s)=>a+ +s.total,0))}</div></div><div class="st" style="--a:#4f46e5"><small>จำนวนบิลวันนี้</small><div>${td.length}</div></div></div>
  <div class="card wrap"><table><tr><th>วันที่</th><th>เลขที่บิล</th><th>รายการ</th><th>ชำระ</th><th>ยอดรวม</th></tr>${l.map(s=>`<tr><td>${D(s.date).toLocaleString('th-TH')}</td><td>${esc(s.id)}</td><td>${(s.items||[]).map(i=>esc(i.name)+' ×'+i.qty).join(', ')}</td><td>${esc(s.pay)}</td><td><b>฿${fmt(s.total)}</b></td></tr>`).join('')||'<tr><td colspan=5>ยังไม่มีรายการขาย</td></tr>'}</table></div>`}
 function vDash(){
  const td=S.sales.filter(s=>sameDay(s.date,new Date())),rev=td.reduce((a,s)=>a+ +s.total,0),cost=td.reduce((a,s)=>a+(s.items||[]).reduce((x,i)=>x+i.cost*i.qty,0),0);
  const low=S.products.filter(p=>p.stock<=5),val=S.products.reduce((a,p)=>a+p.stock*p.cost,0),all=S.sales.reduce((a,s)=>a+ +s.total,0);
- $('#app').innerHTML=`<div class="stats"><div class="st" style="background:#16a34a"><small>ยอดขายวันนี้</small><div>฿${fmt(rev)}</div></div><div class="st" style="background:#1565d8"><small>กำไรวันนี้</small><div>฿${fmt(rev-cost)}</div></div><div class="st" style="background:#7c3aed"><small>ยอดขายสะสม</small><div>฿${fmt(all)}</div></div><div class="st" style="background:#f59e0b"><small>มูลค่าสต็อก (ต้นทุน)</small><div>฿${fmt(val)}</div></div><div class="st" style="background:#dc2626"><small>สินค้าใกล้หมด</small><div>${low.length}</div></div></div>
- <div class="card"><h3 style="margin-top:0">⚠️ สินค้าใกล้หมด (≤ 5)</h3>${low.map(p=>`<div>${esc(p.name)} — เหลือ <b>${p.stock}</b> ${esc(p.unit)}</div>`).join('')||'สต็อกปกติทุกรายการ'}</div>`}
+ $('#app').innerHTML=`<div class="stats"><div class="st" style="--a:#10b981"><small>ยอดขายวันนี้</small><div>฿${fmt(rev)}</div></div><div class="st" style="--a:#4f46e5"><small>กำไรวันนี้</small><div>฿${fmt(rev-cost)}</div></div><div class="st" style="--a:#8b5cf6"><small>ยอดขายสะสม</small><div>฿${fmt(all)}</div></div><div class="st" style="--a:#f59e0b"><small>มูลค่าสต็อก (ต้นทุน)</small><div>฿${fmt(val)}</div></div><div class="st" style="--a:#ef4444"><small>สินค้าใกล้หมด</small><div>${low.length}</div></div></div>
+ <div class="card"><h3 style="margin-top:0">สินค้าใกล้หมด (เหลือ 5 หรือน้อยกว่า)</h3>${low.map(p=>`<div>${esc(p.name)} — เหลือ <b>${p.stock}</b> ${esc(p.unit)}</div>`).join('')||'สต็อกปกติทุกรายการ'}</div>`}
 function vProd(){
  const p=edit?P(edit):{};
  $('#app').innerHTML=`<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">${edit?'แก้ไขสินค้า':'เพิ่มสินค้าใหม่'}</h3><div class="f">
  <div><label>ชื่อสินค้า</label><input id="n" value="${esc(p.name)}"></div><div><label>หมวดหมู่</label><input id="c" list="cl2" value="${esc(p.cat)}"><datalist id="cl2">${cats().slice(1).map(c=>`<option>${esc(c)}`).join('')}</datalist></div>
  <div><label>ราคาขาย</label><input id="pp" type="number" value="${p.price??''}"></div><div><label>ต้นทุน</label><input id="co" type="number" value="${p.cost??''}"></div>
  <div><label>สต็อก</label><input id="s" type="number" value="${p.stock??''}"></div><div><label>หน่วย</label><input id="u" value="${esc(p.unit||'ชิ้น')}"></div>
- <div><label>รูป (ไฟล์) / อีโมจิ</label><input id="im" placeholder="เช่น 🥚" value="${/^data:/.test(p.img||'')?'':esc(p.img)}"></div><div><label>อัปโหลดรูป</label><input id="fi" type="file" accept="image/*"></div>
+ <div><label>รูปสินค้า (ไม่บังคับ)</label><input id="fi" type="file" accept="image/*"></div>
  <div style="display:flex;gap:6px"><button class="b g" onclick="saveP()">บันทึก</button>${edit?'<button class="b" onclick="edit=null;render()">ยกเลิก</button>':''}</div></div></div>
  <div class="card wrap"><table><tr><th>สินค้า</th><th>หมวด</th><th>ราคา</th><th>ต้นทุน</th><th>สต็อก</th><th></th></tr>${S.products.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>฿${fmt(p.price)}</td><td>฿${fmt(p.cost)}</td><td><span class="tag" style="background:${p.stock<=0?'var(--bad)':p.stock<=5?'var(--w)':'var(--ok)'}">${p.stock} ${esc(p.unit)}</span></td><td style="white-space:nowrap"><button class="b o" onclick="restock('${p.id}')">+สต็อก</button> <button class="b" onclick="edit='${p.id}';render();scrollTo(0,0)">แก้ไข</button> <button class="b r" onclick="del('${p.id}')">ลบ</button></td></tr>`).join('')}</table></div>`}
 function shrink(f){return new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,300/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.8))};i.src=URL.createObjectURL(f)})}
 async function saveP(){
  const name=$('#n').value.trim();if(!name||$('#pp').value==='')return toast('กรอกชื่อและราคา');
- let img=$('#im').value.trim()||(edit&&P(edit).img)||'📦';const f=$('#fi').files[0];
+ let img=(edit&&P(edit).img)||'';const f=$('#fi').files[0];
  if(f){img=await shrink(f);if(API_URL){const r=await post({action:'image',name:Date.now()+'.jpg',mime:'image/jpeg',data:img.split(',')[1]});if(r&&r.url)img=r.url}}
  const d={name,cat:$('#c').value.trim()||'ทั่วไป',price:+$('#pp').value,cost:+$('#co').value||0,stock:+$('#s').value||0,unit:$('#u').value||'ชิ้น',img};
  if(edit)Object.assign(P(edit),d);else S.products.push({id:'p'+Date.now(),...d});
  edit=null;save();post({action:'products',products:S.products});toast('บันทึกแล้ว');render()}
 function restock(id){const n=+prompt('เติมสต็อกกี่หน่วย?','10');if(n){P(id).stock+=n;save();post({action:'products',products:S.products});render()}}
 function del(id){if(confirm('ลบสินค้านี้?')){S.products=S.products.filter(p=>p.id!=id);save();post({action:'products',products:S.products});render()}}
+async function diag(){
+ const rows=[],add=(ok,t,d='')=>rows.push(`<div class="dg"><i class="dot ${ok?'ok':'bad'}"></i><div><b>${t}</b><small>${d}</small></div></div>`);
+ const m=document.createElement('div');m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};document.body.appendChild(m);
+ const show=x=>m.innerHTML=`<div class="md"><h3>ตรวจสอบการเชื่อมต่อ</h3>${x}<div style="text-align:right;margin-top:14px"><button class="b" onclick="this.closest('.ov').remove()">ปิด</button></div></div>`;
+ show('<p>กำลังตรวจสอบ...</p>');
+ add(!!API_URL,'ตั้งค่า URL Apps Script',API_URL?'ตั้งค่าแล้ว':'ยังไม่ได้ตั้งค่า กดปุ่ม เชื่อม Google Sheets');
+ if(API_URL){try{const t=Date.now(),d=await(await fetch(API_URL)).json();add(true,'อ่านข้อมูลจากชีต','สินค้า '+d.products.length+' รายการ, บิลขาย '+d.sales.length+' รายการ ('+(Date.now()-t)+' ms)');
+  try{const p=await(await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'ping'})})).json();add(!!p.ok,'ส่งข้อมูลไปยัง Apps Script (POST)',p.sheet?'ไฟล์ชีต: '+esc(p.sheet):'');
+   if(p.folder===undefined)add(false,'โฟลเดอร์ Google Drive','Code.gs ยังเป็นเวอร์ชันเก่า: วางโค้ดใหม่แล้ว Deploy เป็นเวอร์ชันใหม่');else add(!!p.folder,'โฟลเดอร์ Google Drive',p.folder?esc(p.folder):'เข้าถึงโฟลเดอร์ไม่ได้')}
+  catch(e){add(false,'ส่งข้อมูลไปยัง Apps Script (POST)','ไม่สำเร็จ')}}
+  catch(e){add(false,'อ่านข้อมูลจากชีต','เชื่อมต่อไม่ได้: ตรวจว่า Deploy เป็น Anyone และ URL ลงท้าย /exec')}}
+ show(rows.join(''))}
 load();
 </script></body></html>
