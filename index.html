@@ -265,14 +265,18 @@ function pdfDone(blob,name){
  ${navigator.canShare&&navigator.canShare({files:[new File([blob],name,{type:'application/pdf'})]})?'<button class="b" style="width:100%;margin-top:10px" onclick="sharePdf()">แชร์ / บันทึกลงเครื่อง</button>':''}
  <button class="b r" style="width:100%;margin-top:10px" onclick="this.closest('.ov').remove()">ปิด</button></div>`;document.body.appendChild(m)}
 function sharePdf(){const p=window.__pdf;navigator.share({files:[new File([p.blob],p.name,{type:'application/pdf'})],title:p.name}).catch(()=>{})}
-function pmChg(){const m=$('#pm').value,i=$('#pk');i.type=m=='day'?'date':'month';i.value=m=='day'?dd:dmo}
+const lastDay=()=>S.sales.reduce((m,s)=>ymd(s.date)>m?ymd(s.date):m,''),has=k=>S.sales.some(s=>ymd(s.date).startsWith(k));
+function pmChg(){const m=$('#pm').value,i=$('#pk'),L=lastDay()||dd;i.type=m=='day'?'date':'month';i.value=m=='day'?(hd||(has(dd)?dd:L)):(has(dmo)?dmo:L.slice(0,7));pcnt()}
+function pcnt(){const k=$('#pk').value,l=S.sales.filter(s=>k&&ymd(s.date).startsWith(k)),b=$('#pgo');
+ $('#pc').innerHTML=l.length?'พบ <b>'+l.length+'</b> บิล ยอดรวม <b>฿'+fmt(l.reduce((a,s)=>a+ +s.total,0))+'</b>':'<span style="color:var(--bad)">ไม่มีรายการขายในช่วงเวลานี้ กรุณาเลือกวัน/เดือนอื่น</span>';b.disabled=!l.length;b.style.opacity=l.length?1:.5}
 function pdfDlg(){
  const m=document.createElement('div');m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};
- m.innerHTML=`<div class="md"><h3>ส่งออกสรุปยอดขายเป็น PDF</h3><div class="f"><div><label>ประเภทรายงาน</label><select id="pm" onchange="pmChg()"><option value="day">รายวัน</option><option value="month">รายเดือน</option></select></div><div><label>เลือกช่วงเวลา</label><input id="pk"></div></div>
+ m.innerHTML=`<div class="md"><h3>ส่งออกสรุปยอดขายเป็น PDF</h3><div class="f"><div><label>ประเภทรายงาน</label><select id="pm" onchange="pmChg()"><option value="day">รายวัน</option><option value="month">รายเดือน</option></select></div><div><label>เลือกช่วงเวลา</label><input id="pk" oninput="pcnt()" onchange="pcnt()"></div></div>
+ <div id="pc" style="margin-top:14px"></div>
  <label style="display:flex;gap:10px;align-items:center;margin-top:14px"><input type="checkbox" id="pdt" checked style="width:20px;height:20px">รวมรายการขายละเอียด</label>
- <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="b r" onclick="this.closest('.ov').remove()">ยกเลิก</button><button class="b g" onclick="pdfGo()">สร้างไฟล์ PDF</button></div></div>`;
+ <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:18px"><button class="b r" onclick="this.closest('.ov').remove()">ยกเลิก</button><button class="b g" id="pgo" onclick="pdfGo()">สร้างไฟล์ PDF</button></div></div>`;
  document.body.appendChild(m);$('#pm').value=dm;pmChg()}
-function pdfGo(){const m=$('#pm').value,k=$('#pk').value;if(!k)return toast('เลือกช่วงเวลา');$('.ov').remove();makePdf(m,k,$('#pdt').checked)}
+function pdfGo(){const m=$('#pm').value,k=$('#pk').value,d=$('#pdt').checked;if(!k)return toast('เลือกช่วงเวลา');$('.ov').remove();makePdf(m,k,d)}
 // ---------- ตรวจสอบการเชื่อมต่อ (แตะโลโก้ 3 ครั้ง) ----------
 async function diag(){
  const rows=[],add=(ok,t,d='')=>rows.push(`<div class="dg"><i class="dot ${ok?'ok':'bad'}"></i><div><b>${t}</b><small>${d}</small></div></div>`);
