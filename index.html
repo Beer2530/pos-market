@@ -74,6 +74,7 @@ html{-webkit-text-size-adjust:100%;overflow-x:hidden}body{overflow-x:hidden;over
 @media(max-width:900px){.stats{grid-template-columns:1fr 1fr;gap:12px}.st{padding:14px}.si{width:38px;height:38px}.si svg{width:20px;height:20px}#toast{bottom:150px;max-width:90vw;text-align:center}.ov{align-items:end;padding:0}.md{border-radius:22px 22px 0 0;width:100%;max-height:90dvh;overflow:auto;padding-bottom:calc(22px + env(safe-area-inset-bottom))}main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}}
 @media(max-width:1100px){main{padding:22px 20px 40px}}
 @media(max-width:900px){main{padding-bottom:150px}}
+.el{display:grid;grid-template-columns:1fr 72px 92px 56px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--b)}.el input{padding:8px}.el .b{padding:7px 8px;font-size:13px}
 </style>
 
 
@@ -171,7 +172,7 @@ function agg(l){const it={},pay={};let rev=0,cost=0,qty=0;l.forEach(s=>{rev+=+s.
 function vHist(){
  const l=S.sales.filter(s=>!hd||ymd(s.date)==hd).reverse().slice(0,300),a=agg(l);
  $('#app').innerHTML=`<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px"><label style="color:var(--m)">วันที่</label><input type="date" value="${hd}" onchange="hd=this.value;render()" style="width:auto"><button class="chip" onclick="hd='';render()">ทั้งหมด</button><span style="margin-left:auto">${l.length} บิล · <b>฿${fmt(a.rev)}</b></span><button class="b pdfb" style="margin-left:0" onclick="pdfDlg()">${I('file')}<span>ส่งออก PDF</span></button></div>
- <div class="card wrap"><table><tr><th>วันที่</th><th>รายการ</th><th>ชำระ</th><th>ยอดรวม</th></tr>${l.map(s=>`<tr><td>${new Date(s.date).toLocaleString('th-TH')}</td><td>${(s.items||[]).map(i=>esc(i.name)+' ×'+i.qty).join(', ')}</td><td>${esc(s.pay)}</td><td><b>฿${fmt(s.total)}</b></td></tr>`).join('')||'<tr><td colspan=4>ไม่มีรายการขาย</td></tr>'}</table></div>`}
+ <div class="card wrap"><table><tr><th>วันที่</th><th>รายการ</th><th>ชำระ</th><th>ยอดรวม</th><th></th></tr>${l.map(s=>`<tr><td>${new Date(s.date).toLocaleString('th-TH')}</td><td>${(s.items||[]).map(i=>esc(i.name)+' ×'+i.qty).join(', ')}</td><td>${esc(s.pay)}</td><td><b>฿${fmt(s.total)}</b></td><td style="white-space:nowrap"><button class="b" onclick="editSale('${esc(s.id)}')">แก้ไข</button> <button class="b r" onclick="delSale('${esc(s.id)}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan=5>ไม่มีรายการขาย</td></tr>'}</table></div>`}
 function vDash(){
  const key=dm=='day'?dd:dmo,l=S.sales.filter(s=>ymd(s.date).startsWith(key)),a=agg(l);let extra='';
  if(dm=='month'){const days={};l.forEach(s=>(days[ymd(s.date)]=days[ymd(s.date)]||[]).push(s));const rows=Object.keys(days).sort().map(k=>({k,...agg(days[k])})),mx=Math.max(1,...rows.map(r=>r.rev));
@@ -214,6 +215,37 @@ async function saveP(){
  if(edit){p=P(edit);Object.assign(p,d)}else{p={id:'p'+Date.now(),...d,stock:+$('#s').value||0};S.products.push(p)}
  edit=null;saveL();send({action:'upsert',product:p});toast('บันทึกแล้ว');render()}
 function del(id){if(confirm('ลบสินค้านี้?')){S.products=S.products.filter(p=>p.id!=id);saveL();send({action:'delete',id});ptab()}}
+// ---------- แก้ไข / ยกเลิกบิล (ปรับสต็อกและยอดเงินอัตโนมัติ) ----------
+let es=null;
+function editSale(id){const s=S.sales.find(x=>x.id==id);if(!s)return;
+ es={id:s.id,date:s.date,pay:s.pay,oldTotal:+s.total,old:(s.items||[]).map(i=>({...i})),items:(s.items||[]).map(i=>({...i}))};esDlg()}
+function esCap(){es.pay=$('#esp').value;const d=$('#esd').value;if(d)es.date=new Date(d).toISOString()}
+function esDlg(){
+ let m=$('#esm');if(!m){m=document.createElement('div');m.id='esm';m.className='ov';m.onclick=e=>{if(e.target==m){m.remove();es=null}};document.body.appendChild(m)}
+ const tot=es.items.reduce((a,i)=>a+i.qty*i.price,0),dl=new Date(es.date),loc=new Date(dl.getTime()-dl.getTimezoneOffset()*60000).toISOString().slice(0,16);
+ m.innerHTML=`<div class="md" style="width:min(580px,100%)"><h3>แก้ไขรายการขาย</h3>
+ <div class="f" style="margin-bottom:12px"><div><label>วันที่-เวลา</label><input type="datetime-local" id="esd" value="${loc}"></div><div><label>ช่องทางชำระ</label><select id="esp">${['เงินสด','QR พร้อมเพย์','โอนเงิน'].map(x=>`<option ${x==es.pay?'selected':''}>${x}</option>`).join('')}</select></div></div>
+ <div class="el" style="font-size:12px;color:var(--m)"><div>สินค้า</div><div>จำนวน</div><div>ราคา/หน่วย</div><div></div></div>
+ ${es.items.map((i,k)=>`<div class="el"><div>${esc(i.name)}</div><input type="number" min="0" inputmode="numeric" value="${i.qty}" onchange="esSet(${k},'qty',this.value)"><input type="number" min="0" inputmode="decimal" value="${i.price}" onchange="esSet(${k},'price',this.value)"><button class="b r" onclick="esDel(${k})">ลบ</button></div>`).join('')||'<p style="color:var(--m)">ไม่มีรายการสินค้า</p>'}
+ <div style="display:flex;gap:8px;margin-top:12px"><select id="esa" style="flex:1">${S.products.map(p=>`<option value="${esc(p.id)}">${esc(p.name)} (เหลือ ${p.stock})</option>`).join('')}</select><button class="b" onclick="esAdd()">เพิ่มสินค้า</button></div>
+ <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:14px"><span style="color:var(--m)">ยอดรวมใหม่ (เดิม ฿${fmt(es.oldTotal)})</span><b style="font-size:24px">฿${fmt(tot)}</b></div>
+ <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="b r" onclick="$('#esm').remove();es=null">ยกเลิก</button><button class="b g" onclick="esSave()">บันทึกการแก้ไข</button></div></div>`}
+function esSet(k,f,v){esCap();es.items[k][f]=f=='qty'?Math.max(0,Math.floor(+v||0)):Math.max(0,+v||0);esDlg()}
+function esDel(k){esCap();es.items.splice(k,1);esDlg()}
+function esAdd(){esCap();const p=P($('#esa').value);if(!p)return;const x=es.items.find(i=>i.id==p.id);if(x)x.qty++;else es.items.push({id:p.id,name:p.name,qty:1,price:p.price,cost:p.cost});esDlg()}
+function stkLog(p,d,type){if(!API_URL&&d)S.moves.push({id:'M'+Date.now()+p.id,date:new Date().toISOString(),pid:p.id,name:p.name,type,qty:d,after:p.stock,note:''})}
+function esSave(){
+ esCap();const items=es.items.filter(i=>i.qty>0);
+ if(!items.length){if(confirm('ไม่มีสินค้าเหลือในบิลนี้ ต้องการยกเลิกบิลทั้งใบหรือไม่?')){const id=es.id;$('#esm').remove();es=null;delSale(id,1)}return}
+ const m={};es.old.forEach(i=>m[i.id]=(m[i.id]||0)+i.qty);items.forEach(i=>m[i.id]=(m[i.id]||0)-i.qty);
+ for(const id in m){const p=P(id);if(p&&p.stock+m[id]<0)return toast('สต็อกไม่พอ: '+p.name)}
+ for(const id in m){const p=P(id);if(p){p.stock+=m[id];stkLog(p,m[id],'แก้ไขบิล')}}
+ const s=S.sales.find(x=>x.id==es.id),total=items.reduce((a,i)=>a+i.qty*i.price,0);
+ Object.assign(s,{date:es.date,items,total,pay:es.pay,received:es.pay=='เงินสด'?Math.max(+s.received||0,total):total});
+ saveL();send({action:'editSale',sale:s});$('#esm').remove();es=null;toast('แก้ไขบิลแล้ว');render()}
+function delSale(id,y){const s=S.sales.find(x=>x.id==id);if(!s)return;if(!y&&!confirm('ยกเลิกบิลนี้? ระบบจะคืนสต็อกและหักยอดขายออก'))return;
+ (s.items||[]).forEach(i=>{const p=P(i.id);if(p){p.stock+=i.qty;stkLog(p,i.qty,'ยกเลิกบิล')}});
+ S.sales=S.sales.filter(x=>x.id!=id);saveL();send({action:'deleteSale',id});toast('ยกเลิกบิลแล้ว');render()}
 // ---------- ส่งออก PDF (รายวัน / รายเดือน) ----------
 const dLong=k=>new Date(k+'T12:00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),mLong=k=>new Date(k+'-01T12:00:00').toLocaleDateString('th-TH',{month:'long',year:'numeric'});
 const RT=(h,al,rows)=>`<table><tr>${h.map((x,i)=>`<th class="${al[i]}">${x}</th>`).join('')}</tr>${rows.join('')||'<tr><td colspan="'+h.length+'" style="text-align:center;color:#6b7280">ไม่มีข้อมูล</td></tr>'}</table>`;

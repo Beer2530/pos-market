@@ -26,6 +26,17 @@ function stock(x, id, delta) {
   const r = find(x, id); if (r < 0) return '';
   const c = x.getRange(r, 6), n = (+c.getValue() || 0) + delta; c.setValue(n); return n;
 }
+function applyDiff(px, oldI, newI, type) {
+  const m = {}, names = {};
+  oldI.forEach(i => { m[i.id] = (m[i.id] || 0) + i.qty; names[i.id] = i.name; });
+  newI.forEach(i => { m[i.id] = (m[i.id] || 0) - i.qty; names[i.id] = i.name; });
+  const mx = sh('StockLog', MH);
+  Object.keys(m).forEach(id => {
+    if (!m[id]) return;
+    const after = stock(px, id, m[id]);
+    mx.appendRow(['M' + Date.now() + id, new Date().toISOString(), id, names[id], type, m[id], after, '']);
+  });
+}
 function doGet() {
   const s = rows(sh('Sales', SH), SH).map(r => { try { r.items = JSON.parse(r.items); } catch (e) { r.items = []; } return r; });
   return out({ products: rows(sh('Products', PH), PH), sales: s, moves: rows(sh('StockLog', MH), MH).slice(-200) });
@@ -52,6 +63,22 @@ function doPost(e) {
       if (ids(sx).indexOf(String(s.id)) < 0) {
         sx.appendRow([s.id, s.date, JSON.stringify(s.items), s.total, s.pay, s.received]);
         s.items.forEach(i => stock(px, i.id, -i.qty));
+      }
+    }
+    if (d.action == 'editSale') {        // แก้ไขบิล: คำนวณส่วนต่างสต็อกจากบิลเดิมในชีต (ส่งซ้ำก็ไม่ซ้ำซ้อน)
+      const sx = sh('Sales', SH), s = d.sale, r = find(sx, s.id);
+      if (r > 0) {
+        let old = []; try { old = JSON.parse(sx.getRange(r, 3).getValue() || '[]'); } catch (e) {}
+        applyDiff(px, old, s.items, 'แก้ไขบิล');
+        sx.getRange(r, 1, 1, 6).setValues([[s.id, s.date, JSON.stringify(s.items), s.total, s.pay, s.received]]);
+      }
+    }
+    if (d.action == 'deleteSale') {      // ยกเลิกบิล: คืนสต็อกแล้วลบแถว
+      const sx = sh('Sales', SH), r = find(sx, d.id);
+      if (r > 0) {
+        let old = []; try { old = JSON.parse(sx.getRange(r, 3).getValue() || '[]'); } catch (e) {}
+        applyDiff(px, old, [], 'ยกเลิกบิล');
+        sx.deleteRow(r);
       }
     }
     if (d.action == 'adjust') {          // เพิ่ม/ตัดสต็อกด้วยตนเอง + บันทึกประวัติ
