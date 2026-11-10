@@ -71,12 +71,6 @@ td{padding:13px 14px;border-bottom:1px solid var(--b)}tbody tr:hover td,tr:hover
 @media(max-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}input,select{font-size:16px}.tot{font-size:32px}.ci button{width:40px;height:40px}.md{padding:20px}.st div{font-size:24px}.card{padding:16px}}
 html{-webkit-text-size-adjust:100%;overflow-x:hidden}body{overflow-x:hidden;overscroll-behavior-y:none;touch-action:manipulation;min-height:100dvh}body.lock{overflow:hidden}
 .card,.pos>*,.two>*{min-width:0}.pdfb{margin-left:auto;display:flex;gap:8px;align-items:center}
-.rp{width:794px;height:1123px;background:#fff;color:#111827;padding:44px 52px;box-sizing:border-box;font-family:'Sarabun',sans-serif;position:relative;overflow:hidden;font-size:14px}
-.rp .rh{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #4f46e5;padding-bottom:10px;margin-bottom:22px;font-size:15px}.rp .rh b{color:#4f46e5;font-size:18px}.rp .rh span{color:#6b7280}
-.rp h2{margin:0 0 4px;font-size:26px}.rp .pd{margin:0 0 18px;color:#4b5563;font-size:15px}.rp h4{margin:20px 0 8px;font-size:15px;color:#3730a3}
-.rp .rs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.rp .rs div{background:#eef2ff;border-radius:10px;padding:12px}.rp .rs small{display:block;color:#6b7280;font-size:12px}.rp .rs b{font-size:19px}
-.rp table{width:100%;border-collapse:collapse;font-size:13px}.rp th{background:#eef2ff;color:#374151;padding:8px 10px;text-align:left;border-radius:0}.rp td{padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#111827;background:#fff;line-height:1.35}
-.rp .r{text-align:right}.rp .l{text-align:left}.rp .rf{position:absolute;left:52px;right:52px;bottom:28px;display:flex;justify-content:space-between;color:#9ca3af;font-size:12px}
 @media(max-width:900px){.stats{grid-template-columns:1fr 1fr;gap:12px}.st{padding:14px}.si{width:38px;height:38px}.si svg{width:20px;height:20px}#toast{bottom:150px;max-width:90vw;text-align:center}.ov{align-items:end;padding:0}.md{border-radius:22px 22px 0 0;width:100%;max-height:90dvh;overflow:auto;padding-bottom:calc(22px + env(safe-area-inset-bottom))}main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}}
 @media(max-width:1100px){main{padding:22px 20px 40px}}
 @media(max-width:900px){main{padding-bottom:150px}}
@@ -237,18 +231,40 @@ function rpPages(mode,key,detail){
    cur.push(`<tr><td>${new Date(s.date).toLocaleString('th-TH',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${it}</td><td>${esc(s.pay)}</td><td class="r"><b>฿${fmt(s.total)}</b></td></tr>`);h+=rh});fl()}
  return{pages,per,n:l.length}}
 const wrapP=(x,n,t,per)=>`<div class="rp"><div class="rh"><b>ร้านค้า POS</b><span>${per}</span></div>${x}<div class="rf"><span>พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}</span><span>หน้า ${n}/${t}</span></div></div>`;
+const RPCSS=`.rp{width:794px;height:1123px;background:#fff;color:#111827;padding:44px 52px;box-sizing:border-box;font-family:'Sarabun',sans-serif;position:relative;overflow:hidden;font-size:14px}
+.rp .rh{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #4f46e5;padding-bottom:10px;margin-bottom:22px;font-size:15px}.rp .rh b{color:#4f46e5;font-size:18px}.rp .rh span{color:#6b7280}
+.rp h2{margin:0 0 4px;font-size:26px}.rp .pd{margin:0 0 18px;color:#4b5563;font-size:15px}.rp h4{margin:20px 0 8px;font-size:15px;color:#3730a3}
+.rp .rs{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.rp .rs div{background:#eef2ff;border-radius:10px;padding:12px}.rp .rs small{display:block;color:#6b7280;font-size:12px}.rp .rs b{font-size:19px}
+.rp table{width:100%;border-collapse:collapse;font-size:13px}.rp th{background:#eef2ff;color:#374151;padding:8px 10px;text-align:left;border-radius:0}.rp td{padding:7px 10px;border-bottom:1px solid #e5e7eb;color:#111827;background:#fff;line-height:1.35}
+.rp .r{text-align:right}.rp .l{text-align:left}.rp .rf{position:absolute;left:52px;right:52px;bottom:28px;display:flex;justify-content:space-between;color:#9ca3af;font-size:12px}
+`;
 const lib=u=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=u;s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+async function libs(){for(const[n,a,b]of [['html2canvas','lib/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'],['jspdf','lib/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js']]){if(window[n])continue;try{await lib(a);if(!window[n])throw 0}catch(e){await lib(b)}}}
+async function rpFrame(R){
+ const f=document.createElement('iframe');f.style.cssText='position:fixed;left:-10000px;top:0;border:0;width:794px;height:'+R.pages.length*1123+'px';
+ f.srcdoc='<!DOCTYPE html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet"><style>@page{size:A4;margin:0}html,body{margin:0;background:#fff}'+RPCSS+'.rp{page-break-after:always}</style></head><body>'+R.pages.map((x,i)=>wrapP(x,i+1,R.pages.length,R.per)).join('')+'</body></html>';
+ const ld=new Promise(r=>f.onload=r);document.body.appendChild(f);await ld;
+ try{await Promise.race([f.contentDocument.fonts.ready,new Promise(r=>setTimeout(r,4000))])}catch(e){}
+ return f}
 async function makePdf(mode,key,detail){
  const R=rpPages(mode,key,detail);if(!R.n)return toast('ไม่มีรายการขายในช่วงเวลานี้');
- toast('กำลังสร้าง PDF...');
- try{if(!window.html2canvas)await lib('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');if(!window.jspdf)await lib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')}catch(e){return toast('โหลดตัวสร้าง PDF ไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต')}
- const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0';document.body.appendChild(host);
- try{await document.fonts.ready;
-  for(let i=0;i<R.pages.length;i++){toast('กำลังสร้างหน้า '+(i+1)+'/'+R.pages.length);host.innerHTML=wrapP(R.pages[i],i+1,R.pages.length,R.per);
-   const c=await html2canvas(host.firstChild,{scale:2,backgroundColor:'#ffffff'});if(i)doc.addPage();doc.addImage(c.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)}
-  doc.save('sales-'+(mode=='day'?'daily':'monthly')+'-'+key+'.pdf');toast('สร้าง PDF เรียบร้อย')}
- catch(e){toast('สร้าง PDF ไม่สำเร็จ')}
- host.remove()}
+ toast('กำลังสร้าง PDF...');let f;
+ try{
+  await libs();f=await rpFrame(R);
+  const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}),els=f.contentDocument.querySelectorAll('.rp');
+  for(let i=0;i<els.length;i++){toast('กำลังสร้างหน้า '+(i+1)+'/'+els.length);
+   const c=await html2canvas(els[i],{scale:2,backgroundColor:'#ffffff',windowWidth:794});if(i)doc.addPage();doc.addImage(c.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)}
+  f.remove();pdfDone(doc.output('blob'),'sales-'+(mode=='day'?'daily':'monthly')+'-'+key+'.pdf')
+ }catch(e){console.error(e);toast('สร้างไฟล์ตรง ๆ ไม่ได้ กำลังเปิดหน้าพิมพ์ ให้เลือก "บันทึกเป็น PDF"');
+  if(f){setTimeout(()=>{try{f.contentWindow.focus();f.contentWindow.print()}catch(x){toast('สร้าง PDF ไม่สำเร็จ: '+(e&&e.message||e))}},800);setTimeout(()=>f.remove(),180000)}
+  else toast('สร้าง PDF ไม่สำเร็จ: '+(e&&e.message||'โหลดตัวสร้าง PDF ไม่ได้ ตรวจสอบอินเทอร์เน็ต'))}}
+function pdfDone(blob,name){
+ window.__pdf={blob,name};const url=URL.createObjectURL(blob),m=document.createElement('div');m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};
+ m.innerHTML=`<div class="md"><h3>สร้าง PDF เรียบร้อย</h3><p style="color:var(--m);margin:0 0 14px">${esc(name)} (${Math.round(blob.size/1024)} KB)</p>
+ <a class="b g" href="${url}" download="${esc(name)}" style="display:block;text-align:center;text-decoration:none">ดาวน์โหลด / เปิดไฟล์ PDF</a>
+ ${navigator.canShare&&navigator.canShare({files:[new File([blob],name,{type:'application/pdf'})]})?'<button class="b" style="width:100%;margin-top:10px" onclick="sharePdf()">แชร์ / บันทึกลงเครื่อง</button>':''}
+ <button class="b r" style="width:100%;margin-top:10px" onclick="this.closest('.ov').remove()">ปิด</button></div>`;document.body.appendChild(m)}
+function sharePdf(){const p=window.__pdf;navigator.share({files:[new File([p.blob],p.name,{type:'application/pdf'})],title:p.name}).catch(()=>{})}
 function pmChg(){const m=$('#pm').value,i=$('#pk');i.type=m=='day'?'date':'month';i.value=m=='day'?dd:dmo}
 function pdfDlg(){
  const m=document.createElement('div');m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};
