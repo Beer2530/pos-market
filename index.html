@@ -75,6 +75,23 @@ html{-webkit-text-size-adjust:100%;overflow-x:hidden}body{overflow-x:hidden;over
 @media(max-width:1100px){main{padding:22px 20px 40px}}
 @media(max-width:900px){main{padding-bottom:150px}}
 .el{display:grid;grid-template-columns:1fr 72px 92px 56px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--b)}.el input{padding:8px}.el .b{padding:7px 8px;font-size:13px}
+
+/* ---- ป๊อบอัพ ---- */
+.ovp{position:fixed;inset:0;background:#0b112080;backdrop-filter:blur(4px);display:grid;place-items:center;z-index:60;padding:16px;animation:fi .15s}.ovp.out{opacity:0;transition:.22s}
+.pu{text-align:center;width:min(360px,100%);padding:30px 26px 24px;border-radius:24px;max-height:none;animation:pu .3s cubic-bezier(.2,1.4,.4,1)}
+.pu h3{margin:16px 0 6px;font-size:20px}.pu p{margin:0;color:var(--m);line-height:1.5}
+.pi{width:76px;height:76px;margin:0 auto;border-radius:50%;display:grid;place-items:center}.pi svg{width:42px;height:42px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.pu.ok .pi{background:#d1fae5;color:#10b981}.pu.edit .pi{background:#e0e7ff;color:#4f46e5}.pu.del .pi{background:#fee2e2;color:#ef4444}.pu.warn .pi{background:#fef3c7;color:#f59e0b}
+.pu.ok .pi path{stroke-dasharray:30;stroke-dashoffset:30;animation:dr .45s .15s forwards}
+.pb{display:flex;gap:10px;margin-top:22px}.pb .b{flex:1}button.b.dl{background:linear-gradient(135deg,#ef4444,#dc2626)}
+@keyframes pu{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}@keyframes dr{to{stroke-dashoffset:0}}@keyframes fi{from{opacity:0}to{opacity:1}}
+/* ---- การ์ดสินค้าขนาดเล็ก (รองรับไอแพด) ---- */
+.grid{grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:12px}
+.pr{padding:11px;border-radius:14px}.ic{height:60px;margin-bottom:8px}.ic img{max-height:60px}.tile{width:52px;height:52px;border-radius:16px;font-size:24px}
+.pr b{font-size:13px;min-height:34px}.pr .p{font-size:16px;margin:4px 0 6px}.pr small{font-size:11.5px;padding:2px 8px}
+@media(min-width:901px) and (max-width:1100px){:root{--sw:80px}header{padding:20px 10px;align-items:center}.brand h1,header nav button span{display:none}header nav button{justify-content:center;padding:13px}.pos{grid-template-columns:1fr 300px}.grid{grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}}
+@media(max-width:900px){.grid{grid-template-columns:repeat(auto-fill,minmax(122px,1fr));gap:10px}}
+@media(max-width:700px){.grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:9px}.pr{padding:9px}.pu{padding:26px 20px 20px}}
 </style>
 
 
@@ -166,7 +183,7 @@ function checkout(){
  const t=cartTotal(),r=+$('#rc').value||t,pay=$('#pay').value;if(pay=='เงินสด'&&r<t)return toast('รับเงินไม่พอ');
  const sale={id:'S'+Date.now(),date:new Date().toISOString(),items:e.map(([id,n])=>{const p=P(id);p.stock-=n;return{id,name:p.name,qty:n,price:p.price,cost:p.cost}}),total:t,pay,received:r};
  S.sales.push(sale);saveL();cart={};send({action:'sale',sale});
- toast(pay=='เงินสด'&&r>t?'ขายสำเร็จ เงินทอน ฿'+fmt(r-t):'ขายสำเร็จ ฿'+fmt(t));render()}
+ pop('ok','ชำระเงินเรียบร้อย','ยอดรวม ฿'+fmt(t)+(pay=='เงินสด'&&r>t?' · เงินทอน ฿'+fmt(r-t):''),2200);render()}
 // ---------- ประวัติ / สรุปยอด ----------
 function agg(l){const it={},pay={};let rev=0,cost=0,qty=0;l.forEach(s=>{rev+=+s.total;pay[s.pay]=(pay[s.pay]||0)+ +s.total;(s.items||[]).forEach(i=>{cost+=i.cost*i.qty;qty+=i.qty;const o=it[i.name]=it[i.name]||{n:i.name,q:0,r:0};o.q+=i.qty;o.r+=i.qty*i.price})});return{rev,cost,qty,bills:l.length,pay,top:Object.values(it).sort((a,b)=>b.r-a.r)}}
 function vHist(){
@@ -204,7 +221,7 @@ function doAdj(id){
  const p=P(id),sg=+$('#sty').value,n=Math.floor(+$('#sq').value);if(!(n>0))return toast('ใส่จำนวนให้ถูกต้อง');
  const delta=sg*n;if(p.stock+delta<0)return toast('ตัดเกินสต็อกที่มี');p.stock+=delta;
  const mv={id:'M'+Date.now(),date:new Date().toISOString(),pid:p.id,name:p.name,type:sg>0?'เพิ่ม':'ตัด',qty:delta,after:p.stock,note:$('#sn').value.trim()};
- S.moves.push(mv);saveL();send({action:'adjust',move:mv});$('.ov').remove();toast('บันทึกสต็อกแล้ว');ptab()}
+ S.moves.push(mv);saveL();send({action:'adjust',move:mv});$('.ov').remove();pop('ok','ปรับสต็อกเรียบร้อย',p.name+' คงเหลือ '+p.stock+' '+p.unit);ptab()}
 function shrink(f){return new Promise(r=>{const i=new Image();i.onload=()=>{const k=Math.min(1,300/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=i.width*k;c.height=i.height*k;c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.8))};i.src=URL.createObjectURL(f)})}
 async function upImg(img){try{const r=await(await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'image',name:Date.now()+'.jpg',mime:'image/jpeg',data:img.split(',')[1]})})).json();return r.url||null}catch(e){return null}}
 async function saveP(){
@@ -213,8 +230,15 @@ async function saveP(){
  if(f){img=await shrink(f);if(API_URL){const u=await upImg(img);if(u)img=u}if(img.length>45000)img=''}
  const d={name,cat:$('#c').value.trim()||'ทั่วไป',price:+$('#pp').value,cost:+$('#co').value||0,unit:$('#u').value||'ชิ้น',img};let p;
  if(edit){p=P(edit);Object.assign(p,d)}else{p={id:'p'+Date.now(),...d,stock:+$('#s').value||0};S.products.push(p)}
- edit=null;saveL();send({action:'upsert',product:p});toast('บันทึกแล้ว');render()}
-function del(id){if(confirm('ลบสินค้านี้?')){S.products=S.products.filter(p=>p.id!=id);saveL();send({action:'delete',id});ptab()}}
+ const was=edit;edit=null;saveL();send({action:'upsert',product:p});pop('ok',was?'บันทึกการแก้ไขสินค้าแล้ว':'เพิ่มสินค้าใหม่เรียบร้อย',p.name);render()}
+async function del(id){const p=P(id);if(p&&await ask('ลบสินค้านี้?',p.name+' จะถูกลบออกจากรายการสินค้า','ลบสินค้า','del')){S.products=S.products.filter(x=>x.id!=id);saveL();send({action:'delete',id});pop('del','ลบสินค้าเรียบร้อย',p.name);ptab()}}
+// ---------- ป๊อบอัพ ----------
+const PI={ok:'<svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>',del:'<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',edit:'<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/></svg>',warn:'<svg viewBox="0 0 24 24"><path d="M12 4l9 16H3zM12 10v4M12 17.5v.5"/></svg>'};
+function pop(type,title,msg,ms){const o=document.createElement('div');o.className='ovp';o.innerHTML=`<div class="md pu ${type}"><div class="pi">${PI[type]}</div><h3>${esc(title)}</h3>${msg?`<p>${esc(msg)}</p>`:''}</div>`;document.body.appendChild(o);
+ const c=()=>{o.classList.add('out');setTimeout(()=>o.remove(),220)};o.onclick=c;setTimeout(c,ms||1800)}
+function ask(title,msg,okLabel,type){return new Promise(res=>{const o=document.createElement('div');o.className='ovp';type=type||'warn';
+ o.innerHTML=`<div class="md pu ${type}"><div class="pi">${PI[type]}</div><h3>${esc(title)}</h3><p>${esc(msg)}</p><div class="pb"><button class="b" id="aq-n" style="background:var(--bg);color:var(--t)">ยกเลิก</button><button class="b ${type=='del'?'dl':'g'}" id="aq-y">${esc(okLabel)}</button></div></div>`;
+ document.body.appendChild(o);const c=v=>{o.remove();res(v)};o.querySelector('#aq-n').onclick=()=>c(false);o.querySelector('#aq-y').onclick=()=>c(true);o.onclick=e=>{if(e.target==o)c(false)}})}
 // ---------- แก้ไข / ยกเลิกบิล (ปรับสต็อกและยอดเงินอัตโนมัติ) ----------
 let es=null;
 function editSale(id){const s=S.sales.find(x=>x.id==id);if(!s)return;
@@ -234,18 +258,19 @@ function esSet(k,f,v){esCap();es.items[k][f]=f=='qty'?Math.max(0,Math.floor(+v||
 function esDel(k){esCap();es.items.splice(k,1);esDlg()}
 function esAdd(){esCap();const p=P($('#esa').value);if(!p)return;const x=es.items.find(i=>i.id==p.id);if(x)x.qty++;else es.items.push({id:p.id,name:p.name,qty:1,price:p.price,cost:p.cost});esDlg()}
 function stkLog(p,d,type){if(!API_URL&&d)S.moves.push({id:'M'+Date.now()+p.id,date:new Date().toISOString(),pid:p.id,name:p.name,type,qty:d,after:p.stock,note:''})}
-function esSave(){
+async function esSave(){
  esCap();const items=es.items.filter(i=>i.qty>0);
- if(!items.length){if(confirm('ไม่มีสินค้าเหลือในบิลนี้ ต้องการยกเลิกบิลทั้งใบหรือไม่?')){const id=es.id;$('#esm').remove();es=null;delSale(id,1)}return}
+ if(!items.length){if(await ask('ไม่มีสินค้าเหลือในบิลนี้','ต้องการยกเลิกบิลทั้งใบหรือไม่? ระบบจะคืนสต็อกให้','ยกเลิกบิล','del')){const id=es.id;$('#esm').remove();es=null;delSale(id,1)}return}
  const m={};es.old.forEach(i=>m[i.id]=(m[i.id]||0)+i.qty);items.forEach(i=>m[i.id]=(m[i.id]||0)-i.qty);
  for(const id in m){const p=P(id);if(p&&p.stock+m[id]<0)return toast('สต็อกไม่พอ: '+p.name)}
  for(const id in m){const p=P(id);if(p){p.stock+=m[id];stkLog(p,m[id],'แก้ไขบิล')}}
  const s=S.sales.find(x=>x.id==es.id),total=items.reduce((a,i)=>a+i.qty*i.price,0);
  Object.assign(s,{date:es.date,items,total,pay:es.pay,received:es.pay=='เงินสด'?Math.max(+s.received||0,total):total});
- saveL();send({action:'editSale',sale:s});$('#esm').remove();es=null;toast('แก้ไขบิลแล้ว');render()}
-function delSale(id,y){const s=S.sales.find(x=>x.id==id);if(!s)return;if(!y&&!confirm('ยกเลิกบิลนี้? ระบบจะคืนสต็อกและหักยอดขายออก'))return;
+ saveL();send({action:'editSale',sale:s});$('#esm').remove();es=null;pop('edit','แก้ไขบิลเรียบร้อย','ยอดรวมใหม่ ฿'+fmt(total)+' · ปรับสต็อกแล้ว');render()}
+async function delSale(id,y){const s=S.sales.find(x=>x.id==id);if(!s)return;
+ if(!y&&!await ask('ยกเลิกบิลนี้?','฿'+fmt(s.total)+' · ระบบจะคืนสต็อกและหักยอดขายออกจากรายงาน','ยกเลิกบิล','del'))return;
  (s.items||[]).forEach(i=>{const p=P(i.id);if(p){p.stock+=i.qty;stkLog(p,i.qty,'ยกเลิกบิล')}});
- S.sales=S.sales.filter(x=>x.id!=id);saveL();send({action:'deleteSale',id});toast('ยกเลิกบิลแล้ว');render()}
+ S.sales=S.sales.filter(x=>x.id!=id);saveL();send({action:'deleteSale',id});pop('del','ยกเลิกบิลเรียบร้อย','คืนสต็อกและหักยอดขาย ฿'+fmt(s.total)+' แล้ว');render()}
 // ---------- ส่งออก PDF (รายวัน / รายเดือน) ----------
 const dLong=k=>new Date(k+'T12:00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'}),mLong=k=>new Date(k+'-01T12:00:00').toLocaleDateString('th-TH',{month:'long',year:'numeric'});
 const RT=(h,al,rows)=>`<table><tr>${h.map((x,i)=>`<th class="${al[i]}">${x}</th>`).join('')}</tr>${rows.join('')||'<tr><td colspan="'+h.length+'" style="text-align:center;color:#6b7280">ไม่มีข้อมูล</td></tr>'}</table>`;
