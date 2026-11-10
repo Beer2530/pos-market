@@ -1,4 +1,4 @@
-// Google Apps Script — POS: Google Sheets + Google Drive (รองรับหลายเครื่องพร้อมกัน)
+// Google Apps Script — POS: Google Sheets + Google Drive (รองรับหลายเครื่อง และเร็วขึ้น)
 // วิธีใช้: วางโค้ดนี้ทับของเดิมใน Apps Script > Deploy > Manage deployments > Edit > New version > Deploy
 const SS = '11txDJTb_523YyQbqg_IpUYp2b16E-PGOg9DR9xacaB0';
 const FOLDER = '1simptlAElXaWscjR9g9F1fxRPWfB7CDr';
@@ -6,47 +6,67 @@ const PH = ['id','name','cat','price','cost','stock','unit','img'];
 const SH = ['id','date','items','total','pay','received'];
 const MH = ['id','date','pid','name','type','qty','after','note'];
 
+let _ss;
+function ss() { return _ss || (_ss = SpreadsheetApp.openById(SS)); }
 function sh(n, h) {
-  const s = SpreadsheetApp.openById(SS);
-  const x = s.getSheetByName(n) || s.insertSheet(n);
+  let x = ss().getSheetByName(n);
+  if (!x) x = ss().insertSheet(n);
   if (!x.getLastRow()) { x.getRange('B:B').setNumberFormat(h[1] == 'date' ? '@' : 'General'); x.appendRow(h); }
   return x;
 }
-function rows(x, h) {
-  const v = x.getDataRange().getValues(); v.shift();
-  return v.map(r => Object.fromEntries(h.map((k, i) => [k, r[i]])));
-}
 function out(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
-function ids(x) {
-  const n = x.getLastRow();
-  return n < 2 ? [] : x.getRange(2, 1, n - 1, 1).getValues().map(r => String(r[0]));
+
+// เลขเวอร์ชันข้อมูล: เพิ่มทุกครั้งที่มีการเขียน ให้แอปถามเลขนี้ (เบามาก) ก่อน แล้วค่อยโหลดข้อมูลเต็มเมื่อเปลี่ยน
+function ver() { return +PropertiesService.getScriptProperties().getProperty('ver') || 0; }
+function bump() { const p = PropertiesService.getScriptProperties(), v = ver() + 1; p.setProperty('ver', String(v)); return v; }
+
+function rows(x, h, from) {
+  const n = x.getLastRow(), a = Math.max(2, from || 2);
+  if (n < 2 || a > n) return [];
+  return x.getRange(a, 1, n - a + 1, h.length).getValues().map(r => { const o = {}; h.forEach((k, i) => o[k] = r[i]); return o; });
+}
+function ids(x, k) {                      // อ่านเฉพาะคอลัมน์ id (k = เอาเฉพาะแถวล่าสุด k แถว)
+  const n = x.getLastRow(), a = k ? Math.max(2, n - k + 1) : 2;
+  return n < 2 ? [] : x.getRange(a, 1, n - a + 1, 1).getValues().map(r => String(r[0]));
 }
 function find(x, id) { const i = ids(x).indexOf(String(id)); return i < 0 ? -1 : i + 2; }
-function stock(x, id, delta) {
-  const r = find(x, id); if (r < 0) return '';
-  const c = x.getRange(r, 6), n = (+c.getValue() || 0) + delta; c.setValue(n); return n;
+
+// ---- สต็อก: อ่านครั้งเดียว แก้ในหน่วยความจำ เขียนกลับครั้งเดียว ----
+function loadStock(px) {
+  const n = px.getLastRow(), v = n < 2 ? [] : px.getRange(2, 1, n - 1, 6).getValues(), idx = {};
+  v.forEach((r, i) => idx[String(r[0])] = i);
+  return { v, idx, dirty: false };
 }
+function bumpStock(c, id, delta) {
+  const i = c.idx[String(id)]; if (i === undefined) return '';
+  c.v[i][5] = (+c.v[i][5] || 0) + delta; c.dirty = true; return c.v[i][5];
+}
+function saveStock(px, c) { if (c.dirty) px.getRange(2, 6, c.v.length, 1).setValues(c.v.map(r => [r[5]])); }
 function applyDiff(px, oldI, newI, type) {
-  const m = {}, names = {};
-  oldI.forEach(i => { m[i.id] = (m[i.id] || 0) + i.qty; names[i.id] = i.name; });
-  newI.forEach(i => { m[i.id] = (m[i.id] || 0) - i.qty; names[i.id] = i.name; });
+  const m = {}, nm = {};
+  oldI.forEach(i => { m[i.id] = (m[i.id] || 0) + i.qty; nm[i.id] = i.name; });
+  newI.forEach(i => { m[i.id] = (m[i.id] || 0) - i.qty; nm[i.id] = i.name; });
+  const c = loadStock(px), mx = sh('StockLog', MH), now = new Date().toISOString();
+  const log = [];
+  Object.keys(m).forEach(id => { if (m[id]) log.push(['M' + Date.now() + id, now, id, nm[id], type, m[id], bumpStock(c, id, m[id]), '']); });
+  saveStock(px, c);
+  log.forEach(r => mx.appendRow(r));
+}
+
+function doGet(e) {
+  if (e && e.parameter && e.parameter.v) return out({ ver: ver() });
+  const v = ver();
+  const sales = rows(sh('Sales', SH), SH).map(r => { try { r.items = JSON.parse(r.items); } catch (x) { r.items = []; } return r; });
   const mx = sh('StockLog', MH);
-  Object.keys(m).forEach(id => {
-    if (!m[id]) return;
-    const after = stock(px, id, m[id]);
-    mx.appendRow(['M' + Date.now() + id, new Date().toISOString(), id, names[id], type, m[id], after, '']);
-  });
+  return out({ ver: v, products: rows(sh('Products', PH), PH), sales: sales, moves: rows(mx, MH, mx.getLastRow() - 49) });
 }
-function doGet() {
-  const s = rows(sh('Sales', SH), SH).map(r => { try { r.items = JSON.parse(r.items); } catch (e) { r.items = []; } return r; });
-  return out({ products: rows(sh('Products', PH), PH), sales: s, moves: rows(sh('StockLog', MH), MH).slice(-200) });
-}
+
 function doPost(e) {
   const d = JSON.parse(e.postData.contents);
   if (d.action == 'ping') {
     let f = '';
     try { f = DriveApp.getFolderById(FOLDER).getName(); } catch (err) {}
-    return out({ ok: 1, sheet: SpreadsheetApp.openById(SS).getName(), folder: f });
+    return out({ ok: 1, sheet: ss().getName(), folder: f, ver: ver() });
   }
   if (d.action == 'image') {
     const f = DriveApp.getFolderById(FOLDER).createFile(Utilities.newBlob(Utilities.base64Decode(d.data), d.mime, d.name));
@@ -54,47 +74,54 @@ function doPost(e) {
     return out({ url: 'https://drive.google.com/thumbnail?id=' + f.getId() + '&sz=w400' });
   }
   const lock = LockService.getScriptLock(); lock.waitLock(25000);
+  let v = ver();
   try {
     const px = sh('Products', PH);
-    if (d.action == 'seed' && px.getLastRow() < 2 && d.products.length)
+    if (d.action == 'seed' && px.getLastRow() < 2 && d.products.length) {
       px.getRange(2, 1, d.products.length, PH.length).setValues(d.products.map(p => PH.map(k => p[k] === undefined ? '' : p[k])));
-    if (d.action == 'sale') {            // ตัดสต็อกฝั่งเซิร์ฟเวอร์ ป้องกันหลายเครื่องเขียนทับกัน
+      v = bump();
+    }
+    if (d.action == 'sale') {              // ตัดสต็อกฝั่งเซิร์ฟเวอร์ ป้องกันหลายเครื่องเขียนทับกัน
       const sx = sh('Sales', SH), s = d.sale;
-      if (ids(sx).indexOf(String(s.id)) < 0) {
+      if (ids(sx, 300).indexOf(String(s.id)) < 0) {
         sx.appendRow([s.id, s.date, JSON.stringify(s.items), s.total, s.pay, s.received]);
-        s.items.forEach(i => stock(px, i.id, -i.qty));
+        const c = loadStock(px); s.items.forEach(i => bumpStock(c, i.id, -i.qty)); saveStock(px, c);
+        v = bump();
       }
     }
-    if (d.action == 'editSale') {        // แก้ไขบิล: คำนวณส่วนต่างสต็อกจากบิลเดิมในชีต (ส่งซ้ำก็ไม่ซ้ำซ้อน)
+    if (d.action == 'editSale') {          // คำนวณส่วนต่างสต็อกจากบิลเดิมในชีต (ส่งซ้ำก็ไม่ซ้ำซ้อน)
       const sx = sh('Sales', SH), s = d.sale, r = find(sx, s.id);
       if (r > 0) {
-        let old = []; try { old = JSON.parse(sx.getRange(r, 3).getValue() || '[]'); } catch (e) {}
+        let old = []; try { old = JSON.parse(sx.getRange(r, 3).getValue() || '[]'); } catch (x) {}
         applyDiff(px, old, s.items, 'แก้ไขบิล');
         sx.getRange(r, 1, 1, 6).setValues([[s.id, s.date, JSON.stringify(s.items), s.total, s.pay, s.received]]);
+        v = bump();
       }
     }
-    if (d.action == 'deleteSale') {      // ยกเลิกบิล: คืนสต็อกแล้วลบแถว
+    if (d.action == 'deleteSale') {        // ยกเลิกบิล: คืนสต็อกแล้วลบแถว
       const sx = sh('Sales', SH), r = find(sx, d.id);
       if (r > 0) {
-        let old = []; try { old = JSON.parse(sx.getRange(r, 3).getValue() || '[]'); } catch (e) {}
+        let old = []; try { old = JSON.parse(sx.getRange(r, 3).getValue() || '[]'); } catch (x) {}
         applyDiff(px, old, [], 'ยกเลิกบิล');
         sx.deleteRow(r);
+        v = bump();
       }
     }
-    if (d.action == 'adjust') {          // เพิ่ม/ตัดสต็อกด้วยตนเอง + บันทึกประวัติ
+    if (d.action == 'adjust') {            // เพิ่ม/ตัดสต็อกด้วยตนเอง + บันทึกประวัติ
       const mx = sh('StockLog', MH), m = d.move;
-      if (ids(mx).indexOf(String(m.id)) < 0) {
-        const after = stock(px, m.pid, m.qty);
+      if (ids(mx, 300).indexOf(String(m.id)) < 0) {
+        const c = loadStock(px), after = bumpStock(c, m.pid, m.qty); saveStock(px, c);
         mx.appendRow([m.id, m.date, m.pid, m.name, m.type, m.qty, after, m.note]);
+        v = bump();
       }
     }
-    if (d.action == 'upsert') {          // แก้ไขข้อมูลสินค้า (ไม่แตะสต็อกของสินค้าเดิม)
-      const p = d.product, r = find(px, p.id), v = PH.map(k => p[k] === undefined ? '' : p[k]);
-      if (r < 0) px.appendRow(v);
-      else { v[5] = px.getRange(r, 6).getValue(); px.getRange(r, 1, 1, PH.length).setValues([v]); }
+    if (d.action == 'upsert') {            // แก้ไขข้อมูลสินค้า (ไม่แตะสต็อกของสินค้าเดิม)
+      const p = d.product, r = find(px, p.id), vals = PH.map(k => p[k] === undefined ? '' : p[k]);
+      if (r < 0) px.appendRow(vals);
+      else { vals[5] = px.getRange(r, 6).getValue(); px.getRange(r, 1, 1, PH.length).setValues([vals]); }
+      v = bump();
     }
-    if (d.action == 'delete') { const r = find(px, d.id); if (r > 0) px.deleteRow(r); }
-    SpreadsheetApp.flush();
+    if (d.action == 'delete') { const r = find(px, d.id); if (r > 0) { px.deleteRow(r); v = bump(); } }
   } finally { lock.releaseLock(); }
-  return out({ ok: 1 });
+  return out({ ok: 1, ver: v });
 }
