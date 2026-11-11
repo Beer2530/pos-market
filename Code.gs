@@ -2,7 +2,7 @@
 // วิธีใช้: วางโค้ดนี้ทับของเดิมใน Apps Script > Deploy > Manage deployments > Edit > New version > Deploy
 const SS = '11txDJTb_523YyQbqg_IpUYp2b16E-PGOg9DR9xacaB0';
 const FOLDER = '1simptlAElXaWscjR9g9F1fxRPWfB7CDr';
-const PH = ['id','name','cat','price','cost','stock','unit','img'];
+const PH = ['id','name','cat','price','cost','stock','unit','img','dec'];   // dec = ขายเป็นทศนิยมได้ (1/0)
 const SH = ['id','date','items','total','pay','received'];
 const MH = ['id','date','pid','name','type','qty','after','note'];
 
@@ -12,6 +12,7 @@ function sh(n, h) {
   let x = ss().getSheetByName(n);
   if (!x) x = ss().insertSheet(n);
   if (!x.getLastRow()) { x.getRange('B:B').setNumberFormat(h[1] == 'date' ? '@' : 'General'); x.appendRow(h); }
+  else if (x.getLastColumn() < h.length) x.getRange(1, 1, 1, h.length).setValues([h]);   // เติมหัวคอลัมน์ใหม่ (dec)
   return x;
 }
 function out(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
@@ -39,7 +40,7 @@ function loadStock(px) {
 }
 function bumpStock(c, id, delta) {
   const i = c.idx[String(id)]; if (i === undefined) return '';
-  c.v[i][5] = (+c.v[i][5] || 0) + delta; c.dirty = true; return c.v[i][5];
+  c.v[i][5] = Math.round(((+c.v[i][5] || 0) + delta) * 1000) / 1000; c.dirty = true; return c.v[i][5];
 }
 function saveStock(px, c) { if (c.dirty) px.getRange(2, 6, c.v.length, 1).setValues(c.v.map(r => [r[5]])); }
 function applyDiff(px, oldI, newI, type) {
@@ -48,7 +49,7 @@ function applyDiff(px, oldI, newI, type) {
   newI.forEach(i => { m[i.id] = (m[i.id] || 0) - i.qty; nm[i.id] = i.name; });
   const c = loadStock(px), mx = sh('StockLog', MH), now = new Date().toISOString();
   const log = [];
-  Object.keys(m).forEach(id => { if (m[id]) log.push(['M' + Date.now() + id, now, id, nm[id], type, m[id], bumpStock(c, id, m[id]), '']); });
+  Object.keys(m).forEach(id => { m[id] = Math.round(m[id] * 1000) / 1000; if (m[id]) log.push(['M' + Date.now() + id, now, id, nm[id], type, m[id], bumpStock(c, id, m[id]), '']); });
   saveStock(px, c);
   log.forEach(r => mx.appendRow(r));
 }
