@@ -150,6 +150,8 @@ button.g{background:linear-gradient(135deg,#7c5cf0,#a07bff)}button.r{background:
 .dcs{margin-top:8px;width:100%;border:1.5px dashed var(--p);background:none;color:var(--p);border-radius:99px;padding:5px 8px;font:inherit;font-size:11.5px;font-weight:600;cursor:pointer;transition:.15s}.dcs:hover{background:var(--bg)}
 .dcc{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}.dcc .chip{padding:7px 16px}.qe{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
 .lg.img{background:#fff;padding:2px;box-shadow:0 4px 14px rgba(90,60,190,.18);width:46px;height:46px}.lg.img img{width:100%;height:100%;object-fit:contain;border-radius:12px;display:block}
+.sdt{margin:2px 0 10px}.sdt label{font-size:12.5px;color:var(--m);font-weight:500;display:block;margin-bottom:5px}.sdr{display:flex;gap:8px;align-items:center}.sdr input{flex:1;min-width:0}.sdr .chip{padding:9px 14px;flex:none}
+.bk{margin-top:8px;background:#fef3c7;color:#92400e;border-radius:12px;padding:9px 12px;font-size:13px;line-height:1.45}
 </style>
 
 
@@ -235,11 +237,12 @@ function vPos(){
  <div class="cats">${cats().map(c=>`<button class="cat ${c==cat?'on':''}" onclick="cat='${esc(c)}';render()"><span>${I(catIc(c))}</span><small>${esc(c)}</small></button>`).join('')}</div><div class="sec"><h3>${cat=='ทั้งหมด'?'สินค้าทั้งหมด':esc(cat)}</h3><span id="gc"></span></div><div class="grid" id="g"></div></div>
  <div class="card cart"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0 0 6px">ตะกร้าสินค้า</h3><button class="b r xs" onclick="tgc()">ปิด</button></div><div id="cl"></div>
  <div class="tot" id="tt"></div>
+ <div class="sdt"><label>วันที่-เวลาขาย (เลือกย้อนหลังได้)</label><div class="sdr"><input type="datetime-local" id="sdi" max="${nowL()}" value="${sdt||nowL()}" onchange="sdChg(this)"><button class="chip" onclick="sdNow()">ตอนนี้</button></div><div id="sdh"></div></div>
  <div class="f" style="margin:10px 0"><div><label>ช่องทางชำระ</label><select id="pay"><option>เงินสด</option><option>QR พร้อมเพย์</option><option>โอนเงิน</option></select></div><div><label>รับเงินมา</label><input id="rc" type="number" min="0" inputmode="decimal" oninput="chg()"></div></div>
  <div id="chg" style="text-align:right;margin-bottom:8px;color:var(--m)"></div>
  <div style="display:flex;gap:8px"><button class="b r" onclick="cart={};render()">ล้าง</button><button class="b g" style="flex:1;font-size:18px" onclick="checkout()">ชำระเงิน</button></div></div></div>
  <button class="cb b" onclick="tgc()"><span id="cbn"></span><b id="cbt"></b></button>`;
- $('#qs').oninput=e=>{q=e.target.value;grid()};
+ sdUI();$('#qs').oninput=e=>{q=e.target.value;grid()};
  $('#qs').onkeydown=e=>{if(e.key=='Enter'){const p=S.products.find(p=>p.id==q.trim()||p.name==q.trim());if(p){add(p.id);q='';e.target.value='';grid()}}};
  grid();cartUI()}
 const tgc=()=>{const c=$('.cart');c.classList.toggle('open');document.body.classList.toggle('lock',c.classList.contains('open'))};
@@ -260,13 +263,13 @@ function chg(){const r=+($('#rc')?.value||0),t=cartTotal();if($('#chg'))$('#chg'
 function checkout(){
  const e=Object.entries(cart);if(!e.length)return toast('ยังไม่มีสินค้าในตะกร้า');
  const t=cartTotal(),r=+$('#rc').value||t,pay=$('#pay').value;if(pay=='เงินสด'&&r<t)return toast('รับเงินไม่พอ');
- const sale={id:'S'+Date.now(),date:new Date().toISOString(),items:e.map(([id,n])=>{const p=P(id);p.stock=r3(p.stock-n);return{id,name:p.name,qty:n,price:p.price,cost:p.cost}}),total:t,pay,received:r};
+ const sale={id:'S'+Date.now(),date:sdt?new Date(sdt).toISOString():new Date().toISOString(),items:e.map(([id,n])=>{const p=P(id);p.stock=r3(p.stock-n);return{id,name:p.name,qty:n,price:p.price,cost:p.cost}}),total:t,pay,received:r};
  S.sales.push(sale);saveL();cart={};send({action:'sale',sale});
- pop('ok','ชำระเงินเรียบร้อย','ยอดรวม ฿'+fmt(t)+(pay=='เงินสด'&&r>t?' · เงินทอน ฿'+fmt(r-t):''),2200);render()}
+ pop('ok','ชำระเงินเรียบร้อย','ยอดรวม ฿'+fmt(t)+(pay=='เงินสด'&&r>t?' · เงินทอน ฿'+fmt(r-t):'')+(bkDate()?' · ขายย้อนหลัง '+bkDate():''),2600);render()}
 // ---------- ประวัติ / สรุปยอด ----------
 function agg(l){const it={},pay={};let rev=0,cost=0,qty=0;l.forEach(s=>{rev+=+s.total;pay[s.pay]=(pay[s.pay]||0)+ +s.total;(s.items||[]).forEach(i=>{cost+=i.cost*i.qty;qty+=i.qty;const o=it[i.name]=it[i.name]||{n:i.name,q:0,r:0};o.q+=i.qty;o.r+=i.qty*i.price})});return{rev,cost,qty,bills:l.length,pay,top:Object.values(it).sort((a,b)=>b.r-a.r)}}
 function vHist(){
- const l=S.sales.filter(s=>!hd||ymd(s.date)==hd).reverse().slice(0,300),a=agg(l);
+ const l=S.sales.filter(s=>!hd||ymd(s.date)==hd).sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,300),a=agg(l);
  $('#app').innerHTML=`<div class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px"><label style="color:var(--m)">วันที่</label><input type="date" value="${hd}" onchange="hd=this.value;render()" style="width:auto"><button class="chip" onclick="hd='';render()">ทั้งหมด</button><span style="margin-left:auto">${l.length} บิล · <b>฿${fmt(a.rev)}</b></span><button class="b pdfb" style="margin-left:0" onclick="pdfDlg()">${I('file')}<span>ส่งออก PDF</span></button></div>
  <div class="card wrap"><table><tr><th>วันที่</th><th>รายการ</th><th>ชำระ</th><th>ยอดรวม</th><th></th></tr>${l.map(s=>`<tr><td>${new Date(s.date).toLocaleString('th-TH')}</td><td>${(s.items||[]).map(i=>esc(i.name)+' ×'+fq(i.qty)).join(', ')}</td><td>${esc(s.pay)}</td><td><b>฿${fmt(s.total)}</b></td><td style="white-space:nowrap"><button class="b" onclick="editSale('${esc(s.id)}')">แก้ไข</button> <button class="b r" onclick="delSale('${esc(s.id)}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan=5>ไม่มีรายการขาย</td></tr>'}</table></div>`}
 function vDash(){
@@ -322,6 +325,12 @@ function ask(title,msg,okLabel,type){return new Promise(res=>{const o=document.c
  o.innerHTML=`<div class="md pu ${type}"><div class="pi">${PI[type]}</div><h3>${esc(title)}</h3><p>${esc(msg)}</p><div class="pb"><button class="b" id="aq-n" style="background:var(--bg);color:var(--t)">ยกเลิก</button><button class="b ${type=='del'?'dl':'g'}" id="aq-y">${esc(okLabel)}</button></div></div>`;
  document.body.appendChild(o);const c=v=>{o.remove();res(v)};o.querySelector('#aq-n').onclick=()=>c(false);o.querySelector('#aq-y').onclick=()=>c(true);o.onclick=e=>{if(e.target==o)c(false)}})}
 // ---------- ขายทศนิยม (เช่น 0.5 กก.) ----------
+let sdt='';
+const nowL=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};
+const bkDate=()=>sdt&&ymd(sdt)!=ymd(new Date())?new Date(sdt).toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'';
+function sdUI(){const h=$('#sdh');if(!h)return;const b=bkDate();h.innerHTML=b?`<div class="bk"><b>โหมดขายย้อนหลัง</b> · บิลจะบันทึกเป็นวันที่ <b>${b}</b> และตัดสต็อกตามปกติ (กด "ตอนนี้" เพื่อกลับมาขายวันนี้)</div>`:''}
+function sdChg(i){sdt=i.value&&i.value<=nowL()?i.value:'';if(!sdt)i.value=nowL();sdUI()}
+function sdNow(){sdt='';const i=$('#sdi');if(i)i.value=nowL();sdUI()}
 let dcid=null,dcset=0;
 function decDlg(id,set){const p=P(id);if(!p)return;dcid=id;dcset=set?1:0;const cur=cart[id]||0;let m=$('#dcm');if(m)m.remove();
  m=document.createElement('div');m.id='dcm';m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};
