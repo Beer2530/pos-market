@@ -4,6 +4,7 @@ const SS = '11txDJTb_523YyQbqg_IpUYp2b16E-PGOg9DR9xacaB0';
 const FOLDER = '1simptlAElXaWscjR9g9F1fxRPWfB7CDr';
 const PH = ['id','name','cat','price','cost','stock','unit','img','dec'];   // dec = ขายเป็นทศนิยมได้ (1/0)
 const SH = ['id','date','items','total','pay','received'];
+const CH = ['name','img'];                // หมวดหมู่ + รูป (แท็บ Categories)
 const MH = ['id','date','pid','name','type','qty','after','note'];
 
 let _ss;
@@ -59,7 +60,7 @@ function doGet(e) {
   const v = ver();
   const sales = rows(sh('Sales', SH), SH).map(r => { try { r.items = JSON.parse(r.items); } catch (x) { r.items = []; } return r; });
   const mx = sh('StockLog', MH);
-  return out({ ver: v, products: rows(sh('Products', PH), PH), sales: sales, moves: rows(mx, MH, mx.getLastRow() - 49) });
+  return out({ ver: v, products: rows(sh('Products', PH), PH), sales: sales, moves: rows(mx, MH, mx.getLastRow() - 49), cats: rows(sh('Categories', CH), CH) });
 }
 
 function doPost(e) {
@@ -120,6 +121,11 @@ function doPost(e) {
       const p = d.product, r = find(px, p.id), vals = PH.map(k => p[k] === undefined ? '' : p[k]);
       if (r < 0) px.appendRow(vals);
       else { vals[5] = px.getRange(r, 6).getValue(); px.getRange(r, 1, 1, PH.length).setValues([vals]); }
+      v = bump();
+    }
+    if (d.action == 'cat') {               // บันทึกรูปหมวดหมู่
+      const cx = sh('Categories', CH), c = d.cat, r = find(cx, c.name), vals = [c.name, c.img || ''];
+      if (r < 0) cx.appendRow(vals); else cx.getRange(r, 1, 1, 2).setValues([vals]);
       v = bump();
     }
     if (d.action == 'delete') { const r = find(px, d.id); if (r > 0) { px.deleteRow(r); v = bump(); } }
