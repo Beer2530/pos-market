@@ -176,6 +176,9 @@ button.g{background:linear-gradient(135deg,#7c5cf0,#a07bff)}button.r{background:
 .cath{display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;user-select:none}.cath h3{margin:0}.cath small{color:var(--m);font-weight:500;font-size:13px;margin-left:8px}
 .chev{flex:none;width:38px;height:38px;border-radius:50%;background:var(--bg);display:grid;place-items:center;color:var(--p);transition:.2s}.chev svg{width:20px;height:20px;stroke-width:2.4}.catc.open .chev{transform:rotate(180deg)}
 .catc:not(.open){padding:12px 18px}.cat-act{margin:14px 0 4px;display:flex;justify-content:flex-end}.catm{max-height:440px;overflow-y:auto;margin-top:12px;padding:4px}
+.catw{position:relative}.cnv{display:none}
+@media(min-width:901px){.cnv{display:grid;place-items:center;position:absolute;top:24px;width:42px;height:42px;border-radius:50%;border:0;background:var(--c);color:var(--p);font-size:26px;line-height:1;box-shadow:0 4px 14px rgba(90,60,190,.22);cursor:pointer;z-index:2;transition:.15s}.cnv:hover{background:var(--p);color:#fff}.cnv.l{left:-8px}.cnv.r{right:-8px}.cnv:disabled{opacity:0;pointer-events:none}.cats{cursor:grab}.cats.drag{cursor:grabbing;user-select:none}.cats.drag .cat{pointer-events:none}}
+@media(hover:none) and (pointer:coarse){.cnv{display:none!important}.cats{cursor:auto!important}}
 </style>
 
 
@@ -259,7 +262,7 @@ function render(top){const y=scrollY;document.body.classList.remove('lock');
 // ---------- ขายสินค้า ----------
 function vPos(){
  $('#app').innerHTML=`<div class="pos"><div><div class="bn" id="bn">${bnIn()}</div><div class="srw"><div class="sr" style="flex:1;min-width:0">${I('search')}<input id="qs" placeholder="ค้นหาสินค้า หรือสแกนบาร์โค้ด" value="${esc(q)}"></div><button class="dtb" id="dtb" onclick="calDlg()" aria-label="เลือกวันที่ขาย">${I('cal')}<span id="dtl"></span></button></div><div id="sdh"></div>
- <div class="cats">${cats().map(c=>`<button class="cat ${c==cat?'on':''}" onclick="cat='${esc(c)}';render()"><span>${catImg(c)?`<img src="${esc(catImg(c))}" alt="">`:I(catIc(c))}</span><small>${esc(c)}</small></button>`).join('')}<button class="cat add" onclick="tab='prod';catOpen=true;render(1);setTimeout(()=>{const e=$('#catp');if(e)e.scrollIntoView({behavior:'smooth'})},80)"><span>${I('cam')}</span><small>เพิ่มรูปหมวด</small></button></div><div class="sec"><h3>${cat=='ทั้งหมด'?'สินค้าทั้งหมด':esc(cat)}</h3><span id="gc"></span></div><div class="grid" id="g"></div></div>
+ <div class="catw"><button class="cnv l" onclick="catNav(-1)" aria-label="เลื่อนซ้าย">‹</button><div class="cats" id="cats">${cats().map(c=>`<button class="cat ${c==cat?'on':''}" onclick="cat='${esc(c)}';render()"><span>${catImg(c)?`<img src="${esc(catImg(c))}" alt="">`:I(catIc(c))}</span><small>${esc(c)}</small></button>`).join('')}<button class="cat add" onclick="tab='prod';catOpen=true;render(1);setTimeout(()=>{const e=$('#catp');if(e)e.scrollIntoView({behavior:'smooth'})},80)"><span>${I('cam')}</span><small>เพิ่มรูปหมวด</small></button></div><button class="cnv r" onclick="catNav(1)" aria-label="เลื่อนขวา">›</button></div><div class="sec"><h3>${cat=='ทั้งหมด'?'สินค้าทั้งหมด':esc(cat)}</h3><span id="gc"></span></div><div class="grid" id="g"></div></div>
  <div class="card cart"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0 0 6px">ตะกร้าสินค้า</h3><button class="b r xs" onclick="tgc()">ปิด</button></div><div id="cl"></div>
  <div class="tot" id="tt"></div>
  <div class="sdt"><label>วันที่ขาย</label><div class="sdr"><button class="sdb" id="sdb" onclick="calDlg()"></button><button class="chip" onclick="sdNow()">ตอนนี้</button></div></div>
@@ -267,7 +270,7 @@ function vPos(){
  <div id="chg" style="text-align:right;margin-bottom:8px;color:var(--m)"></div>
  <div style="display:flex;gap:8px"><button class="b r" onclick="cart={};render()">ล้าง</button><button class="b g" style="flex:1;font-size:18px" onclick="checkout()">ชำระเงิน</button></div></div></div>
  <button class="cb b" onclick="tgc()"><span id="cbn"></span><b id="cbt"></b></button>`;
- sdUI();$('#qs').oninput=e=>{q=e.target.value;grid()};
+ sdUI();catInit();$('#qs').oninput=e=>{q=e.target.value;grid()};
  $('#qs').onkeydown=e=>{if(e.key=='Enter'){const p=S.products.find(p=>p.id==q.trim()||p.name==q.trim());if(p){add(p.id);q='';e.target.value='';grid()}}};
  grid();cartUI()}
 const tgc=()=>{const c=$('.cart');c.classList.toggle('open');document.body.classList.toggle('lock',c.classList.contains('open'))};
@@ -349,6 +352,21 @@ function pop(type,title,msg,ms){const o=document.createElement('div');o.classNam
 function ask(title,msg,okLabel,type){return new Promise(res=>{const o=document.createElement('div');o.className='ovp';type=type||'warn';
  o.innerHTML=`<div class="md pu ${type}"><div class="pi">${PI[type]}</div><h3>${esc(title)}</h3><p>${esc(msg)}</p><div class="pb"><button class="b" id="aq-n" style="background:var(--bg);color:var(--t)">ยกเลิก</button><button class="b ${type=='del'?'dl':'g'}" id="aq-y">${esc(okLabel)}</button></div></div>`;
  document.body.appendChild(o);const c=v=>{o.remove();res(v)};o.querySelector('#aq-n').onclick=()=>c(false);o.querySelector('#aq-y').onclick=()=>c(true);o.onclick=e=>{if(e.target==o)c(false)}})}
+// ---------- เลื่อนแถวหมวดหมู่ (PC: ปุ่มซ้าย/ขวา + ล้อเมาส์ + ลากเมาส์) ----------
+let catSL=0;
+function catNav(d){const c=$('#cats');if(c)c.scrollBy({left:d*Math.max(240,c.clientWidth*.75),behavior:'smooth'})}
+function catArr(){const c=$('#cats');if(!c)return;catSL=c.scrollLeft;const l=$('.cnv.l'),r=$('.cnv.r');if(l)l.disabled=c.scrollLeft<=2;if(r)r.disabled=c.scrollLeft+c.clientWidth>=c.scrollWidth-2}
+function catInit(){const c=$('#cats');if(!c)return;
+ c.scrollLeft=catSL;const on=c.querySelector('.cat.on');if(on&&(on.offsetLeft<c.scrollLeft||on.offsetLeft+on.offsetWidth>c.scrollLeft+c.clientWidth))c.scrollLeft=on.offsetLeft-c.clientWidth/2+on.offsetWidth/2;
+ c.addEventListener('scroll',catArr,{passive:true});
+ c.addEventListener('wheel',e=>{if(c.scrollWidth<=c.clientWidth)return;const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
+  if((c.scrollLeft<=0&&d<0)||(c.scrollLeft+c.clientWidth>=c.scrollWidth-1&&d>0))return;e.preventDefault();c.scrollLeft+=d},{passive:false});
+ let sx=0,sl=0,moved=0;
+ const mv=e=>{const dx=e.clientX-sx;if(Math.abs(dx)>4){moved=1;c.classList.add('drag')}c.scrollLeft=sl-dx};
+ const up=()=>{removeEventListener('pointermove',mv);removeEventListener('pointerup',up);c.classList.remove('drag')};
+ c.addEventListener('pointerdown',e=>{if(e.pointerType!='mouse'||e.button)return;moved=0;sx=e.clientX;sl=c.scrollLeft;addEventListener('pointermove',mv);addEventListener('pointerup',up)});
+ c.addEventListener('click',e=>{if(moved){e.preventDefault();e.stopPropagation();moved=0}},true);
+ catArr();setTimeout(catArr,150)}
 // ---------- รูปหมวดหมู่ ----------
 let catOld='',catFile=null,catGone=0,catOpen=false;
 function catCard(){const l=cats().slice(1);
