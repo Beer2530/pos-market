@@ -185,6 +185,10 @@ button.g{background:linear-gradient(135deg,#7c5cf0,#a07bff)}button.r{background:
 .cpv span{position:relative}.cpv span img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;border:3px solid #fff;box-sizing:border-box}
 .th{position:relative}.th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .pr .ic img{width:80px;height:80px;max-width:none;max-height:none;object-fit:cover;border-radius:18px}
+.cqh{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:16px 2px 0}.cqh h3{margin:0;font-size:17px;font-weight:700}
+.cq{width:min(300px,60%);flex:none}.cq input{height:42px;font-size:14px;padding-right:38px;box-shadow:var(--sh)}.cq svg{width:18px;height:18px}
+.cqx{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;border:0;background:var(--bg);color:var(--m);font-size:17px;line-height:1;cursor:pointer;place-items:center;padding:0}
+.cn0{margin:22px 12px;color:var(--m);white-space:nowrap}
 </style>
 
 
@@ -268,7 +272,7 @@ function render(top){const y=scrollY;document.body.classList.remove('lock');
 // ---------- ขายสินค้า ----------
 function vPos(){
  $('#app').innerHTML=`<div class="pos"><div><div class="bn" id="bn">${bnIn()}</div><div class="srw"><div class="sr" style="flex:1;min-width:0">${I('search')}<input id="qs" placeholder="ค้นหาสินค้า หรือสแกนบาร์โค้ด" value="${esc(q)}"></div><button class="dtb" id="dtb" onclick="calDlg()" aria-label="เลือกวันที่ขาย">${I('cal')}<span id="dtl"></span></button></div><div id="sdh"></div>
- <div class="catw"><button class="cnv l" onclick="catNav(-1)" aria-label="เลื่อนซ้าย">‹</button><div class="cats" id="cats">${cats().map(c=>`<button class="cat ${c==cat?'on':''}" onclick="cat='${esc(c)}';render()"><span>${catImg(c)?`<img src="${esc(catImg(c))}" alt="">`:I(catIc(c))}</span><small>${esc(c)}</small></button>`).join('')}<button class="cat add" onclick="tab='prod';catOpen=true;render(1);setTimeout(()=>{const e=$('#catp');if(e)e.scrollIntoView({behavior:'smooth'})},80)"><span>${I('cam')}</span><small>เพิ่มรูปหมวด</small></button></div><button class="cnv r" onclick="catNav(1)" aria-label="เลื่อนขวา">›</button></div><div class="sec"><h3>${cat=='ทั้งหมด'?'สินค้าทั้งหมด':esc(cat)}</h3><span id="gc"></span></div><div class="grid" id="g"></div></div>
+ <div class="cqh"><h3>หมวดหมู่</h3><div class="sr cq">${I('search')}<input id="cqs" placeholder="ค้นหาหมวดหมู่" value="${esc(cq)}" autocomplete="off"><button class="cqx" id="cqx" style="display:${cq?'grid':'none'}" onclick="cq='';$('#cqs').value='';catRow();this.style.display='none'" aria-label="ล้างคำค้น">×</button></div></div><div class="catw"><button class="cnv l" onclick="catNav(-1)" aria-label="เลื่อนซ้าย">‹</button><div class="cats" id="cats">${catHtml()}</div><button class="cnv r" onclick="catNav(1)" aria-label="เลื่อนขวา">›</button></div><div class="sec"><h3>${cat=='ทั้งหมด'?'สินค้าทั้งหมด':esc(cat)}</h3><span id="gc"></span></div><div class="grid" id="g"></div></div>
  <div class="card cart"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0 0 6px">ตะกร้าสินค้า</h3><button class="b r xs" onclick="tgc()">ปิด</button></div><div id="cl"></div>
  <div class="tot" id="tt"></div>
  <div class="sdt"><label>วันที่ขาย</label><div class="sdr"><button class="sdb" id="sdb" onclick="calDlg()"></button><button class="chip" onclick="sdNow()">ตอนนี้</button></div></div>
@@ -276,7 +280,7 @@ function vPos(){
  <div id="chg" style="text-align:right;margin-bottom:8px;color:var(--m)"></div>
  <div style="display:flex;gap:8px"><button class="b r" onclick="cart={};render()">ล้าง</button><button class="b g" style="flex:1;font-size:18px" onclick="checkout()">ชำระเงิน</button></div></div></div>
  <button class="cb b" onclick="tgc()"><span id="cbn"></span><b id="cbt"></b></button>`;
- sdUI();catInit();$('#qs').oninput=e=>{q=e.target.value;grid()};
+ sdUI();catInit();{const cs=$('#cqs');cs.oninput=e=>{cq=e.target.value;$('#cqx').style.display=cq?'grid':'none';catRow()};cs.onkeydown=e=>{if(e.key=='Enter'){const m=catList().slice(1);if(m.length){cat=m[0];cq='';render()}}}}$('#qs').oninput=e=>{q=e.target.value;grid()};
  $('#qs').onkeydown=e=>{if(e.key=='Enter'){const p=S.products.find(p=>p.id==q.trim()||p.name==q.trim());if(p){add(p.id);q='';e.target.value='';grid()}}};
  grid();cartUI()}
 const tgc=()=>{const c=$('.cart');c.classList.toggle('open');document.body.classList.toggle('lock',c.classList.contains('open'))};
@@ -359,6 +363,10 @@ function pop(type,title,msg,ms){const o=document.createElement('div');o.classNam
 function ask(title,msg,okLabel,type){return new Promise(res=>{const o=document.createElement('div');o.className='ovp';type=type||'warn';
  o.innerHTML=`<div class="md pu ${type}"><div class="pi">${PI[type]}</div><h3>${esc(title)}</h3><p>${esc(msg)}</p><div class="pb"><button class="b" id="aq-n" style="background:var(--bg);color:var(--t)">ยกเลิก</button><button class="b ${type=='del'?'dl':'g'}" id="aq-y">${esc(okLabel)}</button></div></div>`;
  document.body.appendChild(o);const c=v=>{o.remove();res(v)};o.querySelector('#aq-n').onclick=()=>c(false);o.querySelector('#aq-y').onclick=()=>c(true);o.onclick=e=>{if(e.target==o)c(false)}})}
+let cq='';
+const catList=()=>{const k=cq.trim().toLowerCase();return cats().filter((c,i)=>i==0||!k||c.toLowerCase().includes(k))};
+function catHtml(){return `${catList().map(c=>`<button class="cat ${c==cat?'on':''}" onclick="cat='${esc(c)}';render()"><span>${catImg(c)?`<img src="${esc(catImg(c))}" alt="">`:I(catIc(c))}</span><small>${esc(c)}</small></button>`).join('')}${cq&&catList().length==1?`<p class="cn0">ไม่พบหมวดหมู่ที่ตรงกับ "${esc(cq)}"</p>`:''}<button class="cat add" onclick="tab='prod';catOpen=true;render(1);setTimeout(()=>{const e=$('#catp');if(e)e.scrollIntoView({behavior:'smooth'})},80)"><span>${I('cam')}</span><small>เพิ่มรูปหมวด</small></button>`}
+function catRow(){const c=$('#cats');if(!c)return;c.innerHTML=catHtml();c.scrollLeft=0;catSL=0;catArr()}
 // ---------- เลื่อนแถวหมวดหมู่ (PC: ปุ่มซ้าย/ขวา + ล้อเมาส์ + ลากเมาส์) ----------
 let catSL=0;
 function catNav(d){const c=$('#cats');if(c)c.scrollBy({left:d*Math.max(240,c.clientWidth*.75),behavior:'smooth'})}
