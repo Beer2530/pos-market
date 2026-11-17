@@ -189,6 +189,7 @@ button.g{background:linear-gradient(135deg,#7c5cf0,#a07bff)}button.r{background:
 .cq{width:min(300px,60%);flex:none}.cq input{height:42px;font-size:14px;padding-right:38px;box-shadow:var(--sh)}.cq svg{width:18px;height:18px}
 .cqx{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;border:0;background:var(--bg);color:var(--m);font-size:17px;line-height:1;cursor:pointer;place-items:center;padding:0}
 .cn0{margin:22px 12px;color:var(--m);white-space:nowrap}
+.more{grid-column:1/-1;border:1.5px dashed var(--p);background:none;color:var(--p);border-radius:16px;padding:12px;font:inherit;font-weight:600;cursor:pointer}.more:hover{background:var(--bg)}
 </style>
 
 
@@ -271,8 +272,8 @@ function render(top){const y=scrollY;document.body.classList.remove('lock');
  ({pos:vPos,hist:vHist,dash:vDash,prod:vProd})[tab]();top?scrollTo(0,0):scrollTo(0,y)}
 // ---------- ขายสินค้า ----------
 function vPos(){
- $('#app').innerHTML=`<div class="pos"><div><div class="bn" id="bn">${bnIn()}</div><div class="srw"><div class="sr" style="flex:1;min-width:0">${I('search')}<input id="qs" placeholder="ค้นหาสินค้า หรือสแกนบาร์โค้ด" value="${esc(q)}"></div><button class="dtb" id="dtb" onclick="calDlg()" aria-label="เลือกวันที่ขาย">${I('cal')}<span id="dtl"></span></button></div><div id="sdh"></div>
- <div class="cqh"><h3>หมวดหมู่</h3><div class="sr cq">${I('search')}<input id="cqs" placeholder="ค้นหาหมวดหมู่" value="${esc(cq)}" autocomplete="off"><button class="cqx" id="cqx" style="display:${cq?'grid':'none'}" onclick="cq='';$('#cqs').value='';catRow();this.style.display='none'" aria-label="ล้างคำค้น">×</button></div></div><div class="catw"><button class="cnv l" onclick="catNav(-1)" aria-label="เลื่อนซ้าย">‹</button><div class="cats" id="cats">${catHtml()}</div><button class="cnv r" onclick="catNav(1)" aria-label="เลื่อนขวา">›</button></div><div class="sec"><h3>${cat=='ทั้งหมด'?'สินค้าทั้งหมด':esc(cat)}</h3><span id="gc"></span></div><div class="grid" id="g"></div></div>
+ $('#app').innerHTML=`<div class="pos"><div><div class="bn" id="bn">${bnIn()}</div><div class="srw"><div class="sr" style="flex:1;min-width:0">${I('search')}<input id="qs" placeholder="ค้นหาสินค้า / หมวดหมู่ หรือสแกนบาร์โค้ด" value="${esc(q)}"></div><button class="dtb" id="dtb" onclick="calDlg()" aria-label="เลือกวันที่ขาย">${I('cal')}<span id="dtl"></span></button></div><div id="sdh"></div>
+ <div class="catw"><button class="cnv l" onclick="catNav(-1)" aria-label="เลื่อนซ้าย">‹</button><div class="cats" id="cats">${catHtml()}</div><button class="cnv r" onclick="catNav(1)" aria-label="เลื่อนขวา">›</button></div><div class="sec"><h3 id="gt">${cat=='ทั้งหมด'?'สินค้าทั้งหมด':esc(cat)}</h3><span id="gc"></span></div><div class="grid" id="g"></div></div>
  <div class="card cart"><div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0 0 6px">ตะกร้าสินค้า</h3><button class="b r xs" onclick="tgc()">ปิด</button></div><div id="cl"></div>
  <div class="tot" id="tt"></div>
  <div class="sdt"><label>วันที่ขาย</label><div class="sdr"><button class="sdb" id="sdb" onclick="calDlg()"></button><button class="chip" onclick="sdNow()">ตอนนี้</button></div></div>
@@ -280,7 +281,7 @@ function vPos(){
  <div id="chg" style="text-align:right;margin-bottom:8px;color:var(--m)"></div>
  <div style="display:flex;gap:8px"><button class="b r" onclick="cart={};render()">ล้าง</button><button class="b g" style="flex:1;font-size:18px" onclick="checkout()">ชำระเงิน</button></div></div></div>
  <button class="cb b" onclick="tgc()"><span id="cbn"></span><b id="cbt"></b></button>`;
- sdUI();catInit();{const cs=$('#cqs');cs.oninput=e=>{cq=e.target.value;$('#cqx').style.display=cq?'grid':'none';catRow()};cs.onkeydown=e=>{if(e.key=='Enter'){const m=catList().slice(1);if(m.length){cat=m[0];cq='';render()}}}}$('#qs').oninput=e=>{q=e.target.value;grid()};
+ sdUI();catInit();$('#qs').oninput=e=>{q=e.target.value;gmax=120;catRow();grid()};
  $('#qs').onkeydown=e=>{if(e.key=='Enter'){const p=S.products.find(p=>p.id==q.trim()||p.name==q.trim());if(p){add(p.id);q='';e.target.value='';grid()}}};
  grid();cartUI()}
 const tgc=()=>{const c=$('.cart');c.classList.toggle('open');document.body.classList.toggle('lock',c.classList.contains('open'))};
@@ -288,10 +289,10 @@ const catIc=c=>c=='ทั้งหมด'?'grid':/ไข่/.test(c)?'egg':/ข�
 function best(){if(best.k===S.sales.length&&best.v)return best.v;const m={};S.sales.forEach(s=>(s.items||[]).forEach(i=>m[i.id]=(m[i.id]||0)+i.qty));best.k=S.sales.length;return best.v=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,2).map(x=>String(x[0]))}
 function bnIn(){const k=ymd(new Date()),a=agg(S.sales.filter(s=>ymd(s.date)==k));return `<div><small>ยอดขายวันนี้</small><b>฿${fmt(a.rev)}</b><p>${a.bills} บิล · กำไร ฿${fmt(a.rev-a.cost)}</p><button class="bb" onclick="tab='dash';render(1)">ดูสรุปยอดขาย ${I('arr')}</button></div><span class="bgi">${I('store')}</span>`}
 function grid(){
- const l=S.products.filter(p=>(cat=='ทั้งหมด'||p.cat==cat)&&(!q||(p.name+p.id).toLowerCase().includes(q.toLowerCase()))),bs=best();
- $('#g').innerHTML=l.map(p=>{const n=cart[p.id]||0,bd=p.stock<=0?['หมด','gr']:p.stock<=5?['ใกล้หมด','or']:bs.includes(String(p.id))?['ขายดี','rd']:null;
-  return `<div class="pr ${p.stock<=0?'out':''}" onclick="add('${p.id}')">${bd?`<i class="bdg ${bd[1]}">${bd[0]}</i>`:''}<div class="ic">${icon(p)}</div><b>${esc(p.name)}</b><small>คงเหลือ ${p.stock} ${esc(p.unit)}</small><div class="pf ${n?'in':''}"><span class="p">฿${fmt(p.price)}</span>${n?`<span class="stp"><button onclick="event.stopPropagation();qty('${p.id}',-1)">−</button><b>${fq(n)}</b><button onclick="event.stopPropagation();add('${p.id}')">+</button></span>`:`<span class="ad">${I('plus')}</span>`}</div>${canDec(p)&&p.stock>0?`<button class="dcs" onclick="event.stopPropagation();decDlg('${p.id}')">+ ทศนิยม เช่น 0.5 ${esc(p.unit)}</button>`:''}</div>`}).join('')||'<p>ไม่พบสินค้า</p>';
- const g=$('#gc');if(g)g.textContent=l.length+' รายการ'}
+ const k=q.trim().toLowerCase(),l=S.products.filter(p=>k?(p.name+' '+p.id+' '+p.cat).toLowerCase().includes(k):(cat=='ทั้งหมด'||p.cat==cat)),bs=best();
+ $('#g').innerHTML=l.slice(0,gmax).map(p=>{const n=cart[p.id]||0,bd=p.stock<=0?['หมด','gr']:p.stock<=5?['ใกล้หมด','or']:bs.includes(String(p.id))?['ขายดี','rd']:null;
+  return `<div class="pr ${p.stock<=0?'out':''}" onclick="add('${p.id}')">${bd?`<i class="bdg ${bd[1]}">${bd[0]}</i>`:''}<div class="ic">${icon(p)}</div><b>${esc(p.name)}</b><small>คงเหลือ ${p.stock} ${esc(p.unit)}</small><div class="pf ${n?'in':''}"><span class="p">฿${fmt(p.price)}</span>${n?`<span class="stp"><button onclick="event.stopPropagation();qty('${p.id}',-1)">−</button><b>${fq(n)}</b><button onclick="event.stopPropagation();add('${p.id}')">+</button></span>`:`<span class="ad">${I('plus')}</span>`}</div>${canDec(p)&&p.stock>0?`<button class="dcs" onclick="event.stopPropagation();decDlg('${p.id}')">+ ทศนิยม เช่น 0.5 ${esc(p.unit)}</button>`:''}</div>`}).join('')+(l.length>gmax?`<button class="more" onclick="gmax+=120;grid()">แสดงเพิ่มอีก ${Math.min(120,l.length-gmax)} รายการ (เหลือ ${l.length-gmax})</button>`:'')||'<p>ไม่พบสินค้า</p>';
+ const g=$('#gc'),t=$('#gt');if(t)t.textContent=k?'ผลการค้นหา "'+q.trim()+'"':(cat=='ทั้งหมด'?'สินค้าทั้งหมด':cat);if(g)g.textContent=(k?'หมวดหมู่ '+(catList().length-1)+' · สินค้า ':'')+l.length+' รายการ'}
 function add(id,n){n=n||1;const p=P(id),q=r3((cart[id]||0)+n);if(q>p.stock)return toast('สต็อกไม่พอ: '+p.name+' (เหลือ '+fq(p.stock)+')');cart[id]=q;cartUI()}
 function qty(id,d){const n=r3((cart[id]||0)+d);if(n<=0)delete cart[id];else if(n>P(id).stock)return toast('สต็อกไม่พอ');else cart[id]=n;cartUI()}
 function cartUI(){
@@ -363,9 +364,9 @@ function pop(type,title,msg,ms){const o=document.createElement('div');o.classNam
 function ask(title,msg,okLabel,type){return new Promise(res=>{const o=document.createElement('div');o.className='ovp';type=type||'warn';
  o.innerHTML=`<div class="md pu ${type}"><div class="pi">${PI[type]}</div><h3>${esc(title)}</h3><p>${esc(msg)}</p><div class="pb"><button class="b" id="aq-n" style="background:var(--bg);color:var(--t)">ยกเลิก</button><button class="b ${type=='del'?'dl':'g'}" id="aq-y">${esc(okLabel)}</button></div></div>`;
  document.body.appendChild(o);const c=v=>{o.remove();res(v)};o.querySelector('#aq-n').onclick=()=>c(false);o.querySelector('#aq-y').onclick=()=>c(true);o.onclick=e=>{if(e.target==o)c(false)}})}
-let cq='';
-const catList=()=>{const k=cq.trim().toLowerCase();return cats().filter((c,i)=>i==0||!k||c.toLowerCase().includes(k))};
-function catHtml(){return `${catList().map(c=>`<button class="cat ${c==cat?'on':''}" onclick="cat='${esc(c)}';render()"><span>${catImg(c)?`<img src="${esc(catImg(c))}" alt="">`:I(catIc(c))}</span><small>${esc(c)}</small></button>`).join('')}${cq&&catList().length==1?`<p class="cn0">ไม่พบหมวดหมู่ที่ตรงกับ "${esc(cq)}"</p>`:''}<button class="cat add" onclick="tab='prod';catOpen=true;render(1);setTimeout(()=>{const e=$('#catp');if(e)e.scrollIntoView({behavior:'smooth'})},80)"><span>${I('cam')}</span><small>เพิ่มรูปหมวด</small></button>`}
+let gmax=120;
+const catList=()=>{const k=q.trim().toLowerCase();return cats().filter((c,i)=>i==0||!k||c.toLowerCase().includes(k))};
+function catHtml(){return `${catList().map(c=>`<button class="cat ${c==cat?'on':''}" onclick="cat='${esc(c)}';q='';render()"><span>${catImg(c)?`<img src="${esc(catImg(c))}" alt="">`:I(catIc(c))}</span><small>${esc(c)}</small></button>`).join('')}${q.trim()&&catList().length==1?`<p class="cn0">ไม่มีหมวดหมู่ที่ตรงกับ "${esc(q.trim())}"</p>`:''}<button class="cat add" onclick="tab='prod';catOpen=true;render(1);setTimeout(()=>{const e=$('#catp');if(e)e.scrollIntoView({behavior:'smooth'})},80)"><span>${I('cam')}</span><small>เพิ่มรูปหมวด</small></button>`}
 function catRow(){const c=$('#cats');if(!c)return;c.innerHTML=catHtml();c.scrollLeft=0;catSL=0;catArr()}
 // ---------- เลื่อนแถวหมวดหมู่ (PC: ปุ่มซ้าย/ขวา + ล้อเมาส์ + ลากเมาส์) ----------
 let catSL=0;
