@@ -190,6 +190,7 @@ button.g{background:linear-gradient(135deg,#7c5cf0,#a07bff)}button.r{background:
 .cqx{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;border:0;background:var(--bg);color:var(--m);font-size:17px;line-height:1;cursor:pointer;place-items:center;padding:0}
 .cn0{margin:22px 12px;color:var(--m);white-space:nowrap}
 .more{grid-column:1/-1;border:1.5px dashed var(--p);background:none;color:var(--p);border-radius:16px;padding:12px;font:inherit;font-weight:600;cursor:pointer}.more:hover{background:var(--bg)}
+.mvh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.mvh h3{margin:0}.mvb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mvb .chip{padding:9px 16px}.dtb.mvd{height:40px;padding:0 14px;font-size:13.5px;max-width:none}.dtb.mvd.bk2{background:var(--p);color:#fff}
 </style>
 
 
@@ -252,7 +253,7 @@ const sync=()=>flush();
 function manual(){if(busy)return toast('กำลังซิงค์อยู่');flush()}
 function refresh(){
  Object.keys(cart).forEach(id=>{const p=P(id);if(!p||p.stock<=0)delete cart[id];else if(cart[id]>p.stock)cart[id]=p.stock});
- if(tab=='pos'){const b=$('#bn');if(b)b.innerHTML=bnIn();grid();cartUI()}else if(tab=='prod')ptab();else render()}
+ if(tab=='pos'){const b=$('#bn');if(b)b.innerHTML=bnIn();grid();cartUI()}else if(tab=='prod'){ptab();mvRender()}else render()}
 async function load(){
  try{const d=JSON.parse(localStorage.getItem(K));if(d&&d.products)S={moves:[],sales:[],cats:[],...d};Q=JSON.parse(localStorage.getItem(QK)||'[]')}catch(e){}
  if(!S.products.length)S.products=seed();
@@ -331,12 +332,11 @@ function vProd(){
  <div><label>ราคาขาย</label><input id="pp" type="number" inputmode="decimal" value="${p.price??''}"></div><div><label>ต้นทุน</label><input id="co" type="number" inputmode="decimal" value="${p.cost??''}"></div>
  <div><label>${edit?'สต็อก (ปรับที่ปุ่ม สต็อก)':'สต็อกเริ่มต้น'}</label><input id="s" type="number" step="any" inputmode="decimal" value="${p.stock??''}" ${edit?'disabled':''}></div><div><label>หน่วย</label><input id="u" value="${esc(p.unit||'ชิ้น')}"></div>
  <div><label>ขายเป็นทศนิยม</label><label style="display:flex;gap:8px;align-items:center;min-height:46px;font-size:14px;color:var(--t)"><input type="checkbox" id="pdc" style="width:20px;height:20px" ${(edit?canDec(p):1)?'checked':''}>เช่น 0.5 กก.</label></div><div><label>รูปสินค้า (ไม่บังคับ)</label><div class="fu" onclick="$('#fi').click()"><input id="fi" type="file" accept="image/*" hidden onchange="fuName(this)"><img id="fp" alt="" src="${/^(data:|http)/.test(p.img||'')?esc(p.img):''}" style="display:${/^(data:|http)/.test(p.img||'')?'block':'none'}"><span class="fb">${I('img')}เลือกรูป</span><em id="fn">${p.img?'มีรูปอยู่แล้ว':'ยังไม่เลือก'}</em></div></div>
- <div style="display:flex;gap:6px"><button class="b g" onclick="saveP()">บันทึก</button>${edit?'<button class="b" onclick="edit=null;render()">ยกเลิก</button>':''}</div></div></div>`:''}<div id="pt"></div>`;ptab()}
+ <div style="display:flex;gap:6px"><button class="b g" onclick="saveP()">บันทึก</button>${edit?'<button class="b" onclick="edit=null;render()">ยกเลิก</button>':''}</div></div></div>`:''}<div id="pt"></div><div class="card" id="mvc" style="margin-top:18px"></div>`;ptab();mvRender()}
 function pfilter(){if(!cats().includes(pcat))pcat='ทั้งหมด';const k=pq.trim().toLowerCase();return S.products.filter(p=>(pcat=='ทั้งหมด'||p.cat==pcat)&&(!pst||(pst=='out'?p.stock<=0:p.stock>0&&p.stock<=5))&&(!k||(p.name+' '+p.cat+' '+p.id).toLowerCase().includes(k)))}
 function ptab(){
  const el=$('#pt');if(!el)return;const fl=pfilter(),cn=$('#pcn');if(cn)cn.textContent='แสดง '+fl.length+' จาก '+S.products.length+' รายการ';
- el.innerHTML=`<div class="card wrap" style="margin-bottom:18px"><table><tr><th>สินค้า</th><th>หมวด</th><th>ราคา</th><th>ต้นทุน</th><th>สต็อก</th><th></th></tr>${fl.map(p=>`<tr><td><span class="th">${/^(data:|http)/.test(p.img||'')?`<img src="${esc(p.img)}" alt="">`:catImg(p.cat)?`<img src="${esc(catImg(p.cat))}" alt="">`:I(catIc(p.cat))}</span>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>฿${fmt(p.price)}</td><td>฿${fmt(p.cost)}</td><td><span class="tag" style="background:${p.stock<=0?'var(--bad)':p.stock<=5?'var(--w)':'var(--ok)'}">${p.stock} ${esc(p.unit)}</span></td><td style="white-space:nowrap"><button class="b o" onclick="stockDlg('${p.id}')">สต็อก</button> <button class="b" onclick="edit='${p.id}';render(1)">แก้ไข</button> <button class="b r" onclick="del('${p.id}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan="6">ไม่พบสินค้าที่ค้นหา</td></tr>'}</table></div>
- <div class="card wrap"><h3 style="margin-top:0">ประวัติปรับสต็อก</h3><table><tr><th>วันที่</th><th>สินค้า</th><th>ประเภท</th><th>จำนวน</th><th>คงเหลือ</th><th>หมายเหตุ</th></tr>${[...S.moves].reverse().slice(0,30).map(m=>`<tr><td>${new Date(m.date).toLocaleString('th-TH')}</td><td>${esc(m.name)}</td><td>${esc(m.type)}</td><td><b style="color:${m.qty>0?'var(--ok)':'var(--bad)'}">${m.qty>0?'+':''}${m.qty}</b></td><td>${m.after}</td><td>${esc(m.note)}</td></tr>`).join('')||'<tr><td colspan=6>ยังไม่มีประวัติ</td></tr>'}</table></div>`}
+ el.innerHTML=`<div class="card wrap" style="margin-bottom:18px"><table><tr><th>สินค้า</th><th>หมวด</th><th>ราคา</th><th>ต้นทุน</th><th>สต็อก</th><th></th></tr>${fl.map(p=>`<tr><td><span class="th">${/^(data:|http)/.test(p.img||'')?`<img src="${esc(p.img)}" alt="">`:catImg(p.cat)?`<img src="${esc(catImg(p.cat))}" alt="">`:I(catIc(p.cat))}</span>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>฿${fmt(p.price)}</td><td>฿${fmt(p.cost)}</td><td><span class="tag" style="background:${p.stock<=0?'var(--bad)':p.stock<=5?'var(--w)':'var(--ok)'}">${p.stock} ${esc(p.unit)}</span></td><td style="white-space:nowrap"><button class="b o" onclick="stockDlg('${p.id}')">สต็อก</button> <button class="b" onclick="edit='${p.id}';render(1)">แก้ไข</button> <button class="b r" onclick="del('${p.id}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan="6">ไม่พบสินค้าที่ค้นหา</td></tr>'}</table></div>`}
 function stockDlg(id){
  const p=P(id),m=document.createElement('div');m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};
  m.innerHTML=`<div class="md"><h3>ปรับสต็อก</h3><p style="margin:0 0 12px"><b>${esc(p.name)}</b><br><small style="color:var(--m)">คงเหลือ ${p.stock} ${esc(p.unit)}</small></p><div class="f"><div><label>ประเภท</label><select id="sty"><option value="1">เพิ่มสต็อก (รับของเข้า)</option><option value="-1">ตัดสต็อก (เสียหาย/หมดอายุ/สูญหาย)</option></select></div><div><label>จำนวน (${esc(p.unit)})</label><input id="sq" type="number" min="0" step="any" inputmode="decimal" value="1"></div></div><div style="margin-top:10px"><label style="font-size:12px;color:var(--m)">หมายเหตุ</label><input id="sn" placeholder="เช่น รับของจากซัพพลายเออร์"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="b r" onclick="this.closest('.ov').remove()">ยกเลิก</button><button class="b g" onclick="doAdj('${p.id}')">บันทึก</button></div></div>`;document.body.appendChild(m)}
@@ -405,6 +405,38 @@ async function catSave(){
  if(catFile){img=await sq(catFile,240);if(API_URL){const u=await upImg(img);if(u)img=u}if(img.length>45000)img=''}
  const c=S.cats.find(x=>x.name==name);if(c)c.img=img;else S.cats.push({name,img});
  saveL();send({action:'cat',cat:{name,img}});$('#catm').remove();pop('ok','บันทึกหมวดหมู่แล้ว',name);render()}
+// ---------- ประวัติปรับสต็อก (เลือกวันที่ / ดูทั้งหมดตั้งแต่เริ่มต้น) ----------
+let mvAll=null,mvVer=null,mvDay='',mvQ='',mvT='',mvMax=100,mvLoading=0;
+const mvData=()=>(API_URL&&mvAll)?mvAll:S.moves;
+async function mvLoad(){if(!API_URL||mvLoading)return;if(mvAll&&mvVer!==null&&mvVer===lastVer)return;mvLoading=1;mvTable();
+ try{const d=await(await fetch(API_URL+(API_URL.includes('?')?'&':'?')+'moves=all')).json();mvAll=d.moves||[];mvVer=d.ver===undefined?null:d.ver}catch(e){}
+ mvLoading=0;mvTable()}
+function mvRender(){const el=$('#mvc');if(!el)return;
+ const t=ymd(new Date()),y=ymd(new Date(Date.now()-864e5)),sp=mvDay&&mvDay!=t&&mvDay!=y,lab=sp?new Date(mvDay+'T12:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}):'เลือกวันที่';
+ el.innerHTML=`<div class="mvh"><h3>ประวัติปรับสต็อก</h3><div class="mvb"><button class="chip ${!mvDay?'on':''}" onclick="mvSet('')">ทั้งหมด</button><button class="chip ${mvDay==t?'on':''}" onclick="mvSet('${t}')">วันนี้</button><button class="chip ${mvDay==y?'on':''}" onclick="mvSet('${y}')">เมื่อวาน</button><button class="dtb mvd ${sp?'bk2':''}" onclick="mvPick()">${I('cal')}<span>${lab}</span></button></div></div>
+ <div class="f" style="margin:12px 0"><div><label>ค้นหาชื่อสินค้า / หมายเหตุ</label><input id="mvq" value="${esc(mvQ)}" placeholder="พิมพ์เพื่อค้นหา" oninput="mvQ=this.value;mvMax=100;mvTable()"></div><div><label>ประเภท</label><select onchange="mvT=this.value;mvMax=100;mvTable()">${[['','ทั้งหมด'],['เพิ่ม','เพิ่มสต็อก'],['ตัด','ตัดสต็อก'],['แก้ไขบิล','แก้ไขบิล'],['ยกเลิกบิล','ยกเลิกบิล']].map(([v,l])=>`<option value="${v}" ${v==mvT?'selected':''}>${l}</option>`).join('')}</select></div></div><div id="mvt"></div>`;
+ mvTable();mvLoad()}
+function mvSet(k){mvDay=k;mvMax=100;mvRender()}
+function mvPick(){dpDlg(mvDay,new Set(mvData().map(m=>ymd(m.date))),k=>{mvDay=k;mvMax=100;mvRender()})}
+function mvTable(){const el=$('#mvt');if(!el)return;const q=mvQ.trim().toLowerCase();
+ const l=mvData().filter(m=>(!mvDay||ymd(m.date)==mvDay)&&(!mvT||m.type==mvT)&&(!q||((m.name||'')+' '+(m.note||'')).toLowerCase().includes(q))).sort((a,b)=>new Date(b.date)-new Date(a.date));
+ const add=l.reduce((a,m)=>a+(m.qty>0?+m.qty:0),0),cut=l.reduce((a,m)=>a+(m.qty<0?-m.qty:0),0);
+ el.innerHTML=`<p style="margin:0 0 10px;color:var(--m)">${mvDay?'วัน'+new Date(mvDay+'T12:00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).replace(/^วัน/,''):'ตั้งแต่เริ่มต้น'} · <b style="color:var(--t)">${l.length}</b> รายการ · <b style="color:var(--ok)">เพิ่ม +${fq(add)}</b> · <b style="color:var(--bad)">ตัด −${fq(cut)}</b>${mvLoading?' · กำลังโหลดประวัติทั้งหมด...':''}</p>
+ <div class="wrap"><table><tr><th>วันที่</th><th>สินค้า</th><th>ประเภท</th><th>จำนวน</th><th>คงเหลือ</th><th>หมายเหตุ</th></tr>${l.slice(0,mvMax).map(m=>`<tr><td>${new Date(m.date).toLocaleString('th-TH')}</td><td>${esc(m.name)}</td><td>${esc(m.type)}</td><td><b style="color:${m.qty>0?'var(--ok)':'var(--bad)'}">${m.qty>0?'+':''}${fq(m.qty)}</b></td><td>${m.after===''||m.after===undefined?'':fq(m.after)}</td><td>${esc(m.note)}</td></tr>`).join('')||'<tr><td colspan="6">ไม่มีประวัติในช่วงที่เลือก</td></tr>'}</table></div>${l.length>mvMax?`<button class="more" style="width:100%;margin-top:12px" onclick="mvMax+=100;mvTable()">แสดงเพิ่มอีก ${Math.min(100,l.length-mvMax)} รายการ (เหลือ ${l.length-mvMax})</button>`:''}`}
+// ตัวเลือกวันที่ทั่วไป (ปฏิทิน)
+let dpY=0,dpM=0,dpSel='',dpCb=null,dpHas=null;
+function dpDlg(sel,has,cb){dpCb=cb;dpHas=has;const b=sel?new Date(sel+'T12:00:00'):new Date();dpY=b.getFullYear();dpM=b.getMonth();dpSel=sel||'';dpRender()}
+function dpRender(){
+ let m=$('#dpm');if(!m){m=document.createElement('div');m.id='dpm';m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};document.body.appendChild(m)}
+ const first=new Date(dpY,dpM,1),days=new Date(dpY,dpM+1,0).getDate(),lead=first.getDay(),today=ymd(new Date()),now=new Date();
+ let cells='';for(let i=0;i<lead;i++)cells+='<i></i>';
+ for(let d=1;d<=days;d++){const k=dpY+'-'+String(dpM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');cells+=`<button class="cd ${k==dpSel?'sel':''} ${k==today?'td':''} ${dpHas&&dpHas.has(k)?'hs':''}" ${k>today?'disabled':''} onclick="dpPick('${k}')">${d}</button>`}
+ const canNext=dpY<now.getFullYear()||(dpY==now.getFullYear()&&dpM<now.getMonth());
+ m.innerHTML=`<div class="md cal"><h3>เลือกวันที่</h3><p style="margin:0 0 10px;color:var(--m);font-size:13px">จุดใต้วันที่ = วันที่มีรายการ</p><div class="calh"><button onclick="dpNav(-1)" aria-label="เดือนก่อน">‹</button><b>${first.toLocaleDateString('th-TH',{month:'long',year:'numeric'})}</b><button onclick="dpNav(1)" ${canNext?'':'disabled'} aria-label="เดือนถัดไป">›</button></div>
+ <div class="calw">${['อา','จ','อ','พ','พฤ','ศ','ส'].map(x=>`<span>${x}</span>`).join('')}</div><div class="calg">${cells}</div>
+ <div class="calb"><button class="b r" onclick="$('#dpm').remove()">ปิด</button><button class="b" style="background:var(--bg);color:var(--t)" onclick="dpPick('')">ดูทั้งหมด</button></div></div>`}
+function dpNav(d){dpM+=d;if(dpM<0){dpM=11;dpY--}if(dpM>11){dpM=0;dpY++}dpRender()}
+function dpPick(k){const m=$('#dpm');if(m)m.remove();if(dpCb)dpCb(k)}
 // ---------- ขายทศนิยม (เช่น 0.5 กก.) ----------
 let sdt='';
 const nowL=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};

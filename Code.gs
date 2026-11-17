@@ -57,6 +57,7 @@ function applyDiff(px, oldI, newI, type) {
 
 function doGet(e) {
   if (e && e.parameter && e.parameter.v) return out({ ver: ver() });
+  if (e && e.parameter && e.parameter.moves) return out({ ver: ver(), moves: rows(sh('StockLog', MH), MH) });   // ประวัติสต็อกทั้งหมดตั้งแต่เริ่มต้น
   const v = ver();
   const sales = rows(sh('Sales', SH), SH).map(r => { try { r.items = JSON.parse(r.items); } catch (x) { r.items = []; } return r; });
   const mx = sh('StockLog', MH);
