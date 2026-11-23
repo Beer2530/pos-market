@@ -191,6 +191,9 @@ button.g{background:linear-gradient(135deg,#7c5cf0,#a07bff)}button.r{background:
 .cn0{margin:22px 12px;color:var(--m);white-space:nowrap}
 .more{grid-column:1/-1;border:1.5px dashed var(--p);background:none;color:var(--p);border-radius:16px;padding:12px;font:inherit;font-weight:600;cursor:pointer}.more:hover{background:var(--bg)}
 .mvh{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.mvh h3{margin:0}.mvb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.mvb .chip{padding:9px 16px}.dtb.mvd{height:40px;padding:0 14px;font-size:13.5px;max-width:none}.dtb.mvd.bk2{background:var(--p);color:#fff}
+.chk{width:min(640px,100%)!important;max-height:88vh;overflow:auto}.ci2{border:1px solid var(--b);border-radius:16px;padding:14px;margin-bottom:12px;background:var(--c)}.ci2.bad{border-color:#fca5a5;background:#fff5f5}.ci2.warn{border-color:#fcd34d;background:#fffbeb}
+.ci2 b{display:block;margin-bottom:4px}.ci2 small{display:block;color:var(--m);line-height:1.45}.pl{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.pl button{border:1px solid var(--b);background:var(--c);color:var(--t);border-radius:99px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}.pl button i{font-style:normal;color:var(--p);font-weight:700;margin-left:4px}.pl em{align-self:center;color:var(--m);font-style:normal;font-size:13px}
+.ledk{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:12px}.ledk div{background:var(--bg);border-radius:14px;padding:10px 12px}.ledk small{display:block;color:var(--m);font-size:12px}.ledk b{font-size:17px}.ledn{margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--bg);font-size:13.5px;line-height:1.5}.ledn.bad{background:#fff5f5;color:#b91c1c}
 </style>
 
 
@@ -326,7 +329,7 @@ function vDash(){
 // ---------- สินค้า / สต็อก ----------
 function vProd(){
  const p=edit?P(edit):{};
- $('#app').innerHTML=`<div class="card" style="margin-bottom:18px"><div style="display:flex;gap:10px;align-items:center"><div class="sr" style="flex:1">${I('search')}<input id="pqi" placeholder="ค้นหาสินค้า ชื่อ หมวดหมู่ หรือรหัส" value="${esc(pq)}" oninput="pq=this.value;ptab()"></div><button class="b" style="white-space:nowrap" onclick="pform=!pform;if(!pform)edit=null;render()">${(pform||edit)?'ปิดฟอร์ม':'+ เพิ่มสินค้าใหม่'}</button></div>
+ $('#app').innerHTML=`<div class="card" style="margin-bottom:18px"><div style="display:flex;gap:10px;align-items:center"><div class="sr" style="flex:1">${I('search')}<input id="pqi" placeholder="ค้นหาสินค้า ชื่อ หมวดหมู่ หรือรหัส" value="${esc(pq)}" oninput="pq=this.value;ptab()"></div><button class="b" style="white-space:nowrap;background:#fef3c7;color:#92400e" onclick="chkDlg()">ตรวจสอบสต็อก</button><button class="b" style="white-space:nowrap" onclick="pform=!pform;if(!pform)edit=null;render()">${(pform||edit)?'ปิดฟอร์ม':'+ เพิ่มสินค้าใหม่'}</button></div>
  <div class="f" style="margin-top:12px"><div><label>หมวดหมู่</label><select onchange="pcat=this.value;ptab()">${cats().map(c=>`<option ${c==pcat?'selected':''}>${esc(c)}</option>`).join('')}</select></div><div><label>สถานะสต็อก</label><select onchange="pst=this.value;ptab()">${[['','ทั้งหมด'],['low','ใกล้หมด (เหลือ 5 หรือน้อยกว่า)'],['out','หมดแล้ว']].map(([v,l])=>`<option value="${v}" ${v==pst?'selected':''}>${l}</option>`).join('')}</select></div><div style="color:var(--m);align-self:center" id="pcn"></div></div></div>${catCard()}${(pform||edit)?`<div class="card" style="margin-bottom:18px"><h3 style="margin-top:0">${edit?'แก้ไขสินค้า':'เพิ่มสินค้าใหม่'}</h3><div class="f">
  <div><label>ชื่อสินค้า</label><input id="n" value="${esc(p.name)}"></div><div><label>หมวดหมู่</label><input id="c" list="cl2" value="${esc(p.cat)}"><datalist id="cl2">${cats().slice(1).map(c=>`<option>${esc(c)}`).join('')}</datalist></div>
  <div><label>ราคาขาย</label><input id="pp" type="number" inputmode="decimal" value="${p.price??''}"></div><div><label>ต้นทุน</label><input id="co" type="number" inputmode="decimal" value="${p.cost??''}"></div>
@@ -336,7 +339,7 @@ function vProd(){
 function pfilter(){if(!cats().includes(pcat))pcat='ทั้งหมด';const k=pq.trim().toLowerCase();return S.products.filter(p=>(pcat=='ทั้งหมด'||p.cat==pcat)&&(!pst||(pst=='out'?p.stock<=0:p.stock>0&&p.stock<=5))&&(!k||(p.name+' '+p.cat+' '+p.id).toLowerCase().includes(k)))}
 function ptab(){
  const el=$('#pt');if(!el)return;const fl=pfilter(),cn=$('#pcn');if(cn)cn.textContent='แสดง '+fl.length+' จาก '+S.products.length+' รายการ';
- el.innerHTML=`<div class="card wrap" style="margin-bottom:18px"><table><tr><th>สินค้า</th><th>หมวด</th><th>ราคา</th><th>ต้นทุน</th><th>สต็อก</th><th></th></tr>${fl.map(p=>`<tr><td><span class="th">${/^(data:|http)/.test(p.img||'')?`<img src="${esc(p.img)}" alt="">`:catImg(p.cat)?`<img src="${esc(catImg(p.cat))}" alt="">`:I(catIc(p.cat))}</span>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>฿${fmt(p.price)}</td><td>฿${fmt(p.cost)}</td><td><span class="tag" style="background:${p.stock<=0?'var(--bad)':p.stock<=5?'var(--w)':'var(--ok)'}">${p.stock} ${esc(p.unit)}</span></td><td style="white-space:nowrap"><button class="b o" onclick="stockDlg('${p.id}')">สต็อก</button> <button class="b" onclick="edit='${p.id}';render(1)">แก้ไข</button> <button class="b r" onclick="del('${p.id}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan="6">ไม่พบสินค้าที่ค้นหา</td></tr>'}</table></div>`}
+ el.innerHTML=`<div class="card wrap" style="margin-bottom:18px"><table><tr><th>สินค้า</th><th>หมวด</th><th>ราคา</th><th>ต้นทุน</th><th>สต็อก</th><th></th></tr>${fl.map(p=>`<tr><td><span class="th">${/^(data:|http)/.test(p.img||'')?`<img src="${esc(p.img)}" alt="">`:catImg(p.cat)?`<img src="${esc(catImg(p.cat))}" alt="">`:I(catIc(p.cat))}</span>${esc(p.name)}</td><td>${esc(p.cat)}</td><td>฿${fmt(p.price)}</td><td>฿${fmt(p.cost)}</td><td><span class="tag" style="background:${p.stock<=0?'var(--bad)':p.stock<=5?'var(--w)':'var(--ok)'}">${p.stock} ${esc(p.unit)}</span></td><td style="white-space:nowrap"><button class="b" style="background:var(--bg);color:var(--p)" onclick="ledDlg('${esc(String(p.id)).replace(/'/g,'')}')">ประวัติ</button> <button class="b o" onclick="stockDlg('${p.id}')">สต็อก</button> <button class="b" onclick="edit='${p.id}';render(1)">แก้ไข</button> <button class="b r" onclick="del('${p.id}')">ลบ</button></td></tr>`).join('')||'<tr><td colspan="6">ไม่พบสินค้าที่ค้นหา</td></tr>'}</table></div>`}
 function stockDlg(id){
  const p=P(id),m=document.createElement('div');m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};
  m.innerHTML=`<div class="md"><h3>ปรับสต็อก</h3><p style="margin:0 0 12px"><b>${esc(p.name)}</b><br><small style="color:var(--m)">คงเหลือ ${p.stock} ${esc(p.unit)}</small></p><div class="f"><div><label>ประเภท</label><select id="sty"><option value="1">เพิ่มสต็อก (รับของเข้า)</option><option value="-1">ตัดสต็อก (เสียหาย/หมดอายุ/สูญหาย)</option></select></div><div><label>จำนวน (${esc(p.unit)})</label><input id="sq" type="number" min="0" step="any" inputmode="decimal" value="1"></div></div><div style="margin-top:10px"><label style="font-size:12px;color:var(--m)">หมายเหตุ</label><input id="sn" placeholder="เช่น รับของจากซัพพลายเออร์"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px"><button class="b r" onclick="this.closest('.ov').remove()">ยกเลิก</button><button class="b g" onclick="doAdj('${p.id}')">บันทึก</button></div></div>`;document.body.appendChild(m)}
@@ -437,6 +440,45 @@ function dpRender(){
  <div class="calb"><button class="b r" onclick="$('#dpm').remove()">ปิด</button><button class="b" style="background:var(--bg);color:var(--t)" onclick="dpPick('')">ดูทั้งหมด</button></div></div>`}
 function dpNav(d){dpM+=d;if(dpM<0){dpM=11;dpY--}if(dpM>11){dpM=0;dpY++}dpRender()}
 function dpPick(k){const m=$('#dpm');if(m)m.remove();if(dpCb)dpCb(k)}
+// ---------- ตรวจสอบสต็อก + สมุดสต็อกรายสินค้า ----------
+function stockIssues(){
+ const L=[],byId={},byName={};
+ S.products.forEach(p=>{const id=String(p.id??'').trim(),n=String(p.name||'').trim().toLowerCase();(byId[id]=byId[id]||[]).push(p);(byName[n]=byName[n]||[]).push(p)});
+ let dup=0;Object.entries(byId).forEach(([id,l])=>{if(l.length>1||!id){dup+=l.length-(id?1:0);L.push({lv:'bad',fix:1,t:id?'รหัสสินค้าซ้ำ "'+id+'" ('+l.length+' รายการ)':'สินค้าไม่มีรหัส ('+l.length+' รายการ)',d:'ระบบอ้างสินค้าด้วยรหัส ถ้ารหัสซ้ำหรือว่าง การขายจะตัดสต็อกผิดรายการได้ (สาเหตุที่ทำให้สต็อกรวน)',ps:l})}});
+ Object.values(byName).forEach(l=>{if(l.length>1&&String(l[0].name||'').trim())L.push({lv:'warn',t:'ชื่อสินค้าซ้ำ "'+l[0].name+'" ('+l.length+' รายการ)',d:'อาจเป็นสินค้าเดียวกันที่แยกสต็อกเป็น 2 ตัว เช่น ตักขาย กับ ยกกระสอบ ควรรวมหรือเปลี่ยนชื่อให้ต่างกัน',ps:l})});
+ const neg=S.products.filter(p=>p.stock<0);if(neg.length)L.push({lv:'bad',t:'สต็อกติดลบ '+neg.length+' รายการ',d:'ขายเกินสต็อกที่มี หรือสต็อกตั้งต้นไม่ตรงของจริง ให้นับของแล้วปรับสต็อก',ps:neg});
+ const fr=S.products.filter(p=>!canDec(p)&&Math.abs(p.stock-Math.round(p.stock))>1e-9);if(fr.length)L.push({lv:'warn',t:'สต็อกเป็นทศนิยมแต่สินค้าไม่ได้เปิดขายทศนิยม '+fr.length+' รายการ',d:'อาจเกิดจากขายทศนิยมแล้วปิดตัวเลือกภายหลัง หรือแก้สต็อกในชีตด้วยมือ',ps:fr});
+ const nm={};S.products.forEach(p=>{if(!(String(p.id) in nm))nm[String(p.id)]=p.name});const mis={},miss={};
+ S.sales.forEach(s=>(s.items||[]).forEach(i=>{const k=String(i.id);if(!(k in nm))miss[i.name]=(miss[i.name]||0)+1;else if(nm[k]!==i.name)(mis[k]=mis[k]||{b:i.name,n:0}).n++}));
+ Object.entries(mis).forEach(([k,v])=>{const p=S.products.find(x=>String(x.id)==k);L.push({lv:'warn',t:'ชื่อในบิลไม่ตรงกับสินค้า: "'+v.b+'" → ตอนนี้เป็น "'+p.name+'" ('+v.n+' บิล)',d:'เปลี่ยนชื่อสินค้าภายหลัง หรือรหัสเดียวกันถูกใช้กับสินค้าคนละตัว (ตรวจดูในสมุดสต็อก)',ps:[p]})});
+ const mk=Object.keys(miss);if(mk.length)L.push({lv:'warn',t:'บิลอ้างอิงสินค้าที่ไม่มีในระบบแล้ว '+mk.length+' ชื่อ',d:mk.slice(0,6).join(', ')+(mk.length>6?' ...':'')+' — สินค้าถูกลบ หรือรหัสเปลี่ยน ทำให้ยอดสต็อกย้อนหลังไม่ครบ',ps:[]});
+ return L}
+function chkDlg(){
+ const L=stockIssues(),m=document.createElement('div');m.id='chkm';m.className='ov';m.onclick=e=>{if(e.target==m)m.remove()};
+ const kw=['ข้าวสาร','ตัก'];const rel=S.products.filter(p=>kw.some(k=>(p.name+p.cat).includes(k))).slice(0,12);
+ m.innerHTML=`<div class="md chk"><h3>ตรวจสอบสต็อก</h3><p style="margin:0 0 12px;color:var(--m)">ตรวจ ${S.products.length} สินค้า · ${S.sales.length} บิล ${L.length?'· พบ <b style="color:var(--bad)">'+L.length+' เรื่อง</b>':'· <b style="color:var(--ok)">ไม่พบความผิดปกติ</b>'}</p>
+ ${L.map(x=>`<div class="ci2 ${x.lv}"><b>${esc(x.t)}</b><small>${esc(x.d)}</small><div class="pl">${x.ps.slice(0,8).map(p=>`<button onclick="ledDlg('${esc(String(p.id)).replace(/'/g,'')}')">${esc(p.name)} <i>${fq(p.stock)}</i></button>`).join('')}${x.ps.length>8?'<em>+'+(x.ps.length-8)+'</em>':''}</div>${x.fix?'<button class="b g" style="margin-top:10px" onclick="fixIds()">สร้างรหัสใหม่ให้รายการที่ซ้ำ/ว่างอัตโนมัติ</button>':''}</div>`).join('')}
+ <div class="ci2"><b>ดูสมุดสต็อกรายสินค้า</b><small>แตะสินค้าเพื่อดูทุกการขาย/เพิ่ม/ตัด พร้อมยอดคงเหลือย้อนหลัง</small><div class="pl">${rel.map(p=>`<button onclick="ledDlg('${esc(String(p.id)).replace(/'/g,'')}')">${esc(p.name)} <i>${fq(p.stock)}</i></button>`).join('')||'<em>ค้นหาสินค้าในตารางแล้วกดปุ่ม "ประวัติ"</em>'}</div></div>
+ <div style="text-align:right;margin-top:14px"><button class="b" onclick="$('#chkm').remove()">ปิด</button></div></div>`;
+ const o=$('#chkm');if(o)o.remove();document.body.appendChild(m)}
+async function fixIds(){
+ if(!await ask('สร้างรหัสใหม่ให้รายการที่ซ้ำ/ว่าง?','รายการแรกของรหัสนั้นยังใช้รหัสเดิม รายการที่ซ้ำจะได้รหัสใหม่ สต็อกและราคาไม่เปลี่ยน','ดำเนินการ','warn'))return;
+ const seen={};let n=0;S.products.forEach((p,i)=>{let id=String(p.id??'').trim();if(String(p.name||'').trim()&&(!id||seen[id])){p.id='p'+Date.now()+'_'+i;n++}seen[String(p.id)]=1});
+ saveL();lastVer=null;send({action:'fixIds'});$('#chkm')&&$('#chkm').remove();pop('ok','สร้างรหัสใหม่แล้ว',n+' รายการ');if(tab=='prod')render(); }
+async function ledDlg(id){
+ const p=S.products.find(x=>String(x.id)==String(id));if(!p)return toast('ไม่พบสินค้า');
+ if(API_URL&&!mvAll)await mvLoad();
+ const E=[];S.sales.forEach(s=>(s.items||[]).forEach(i=>{if(String(i.id)==String(id))E.push({d:s.date,t:'ขาย',q:-i.qty,b:1,n:s.pay+(i.name!==p.name?' (ชื่อในบิล: '+i.name+')':'')})}));
+ mvData().filter(m=>String(m.pid)==String(id)).forEach(m=>E.push({d:m.date,t:m.type,q:+m.qty,b:m.type=='เพิ่ม'||m.type=='ตัด',n:m.note||'',a:m.after}));
+ E.sort((a,b)=>new Date(b.d)-new Date(a.d));
+ let bal=p.stock;const sold=E.filter(e=>e.t=='ขาย').reduce((a,e)=>a-e.q,0),add=E.filter(e=>e.t=='เพิ่ม').reduce((a,e)=>a+e.q,0),cut=E.filter(e=>e.t=='ตัด').reduce((a,e)=>a-e.q,0),start=r3(p.stock+sold-add+cut);
+ const rows=E.slice(0,300).map(e=>{const r=e.b?bal:null;if(e.b)bal=r3(bal-e.q);const bad=e.a!==undefined&&e.a!==''&&r!==null&&Math.abs(r3(+e.a)-r)>0.0005;
+  return `<tr><td>${new Date(e.d).toLocaleString('th-TH')}</td><td>${esc(e.t)}</td><td><b style="color:${e.q>0?'var(--ok)':'var(--bad)'}">${e.q>0?'+':''}${fq(e.q)}</b></td><td>${r===null?'<small style="color:var(--m)">ปรับตามบิล</small>':fq(r)}</td><td>${bad?'<span class="tag" style="background:var(--w)" title="ค่าที่บันทึกตอนนั้น">บันทึกไว้ '+fq(e.a)+'</span> ':''}${esc(e.n)}</td></tr>`}).join('');
+ let m=$('#ledm');if(m)m.remove();m=document.createElement('div');m.id='ledm';m.className='ov';m.onclick=ev=>{if(ev.target==m)m.remove()};
+ m.innerHTML=`<div class="md chk"><h3>สมุดสต็อก: ${esc(p.name)}</h3><div class="ledk"><div><small>สต็อกปัจจุบัน</small><b>${fq(p.stock)} ${esc(p.unit)}</b></div><div><small>ขายไปรวม</small><b>${fq(sold)}</b></div><div><small>เพิ่มรวม</small><b style="color:var(--ok)">+${fq(add)}</b></div><div><small>ตัดรวม</small><b style="color:var(--bad)">−${fq(cut)}</b></div></div>
+ <p class="ledn ${start<0?'bad':''}">คำนวณย้อนกลับ: สต็อกเริ่มต้นที่ควรเป็น = <b>${fq(start)}</b> ${esc(p.unit)}${start<0?' — ติดลบ แปลว่าขาย/ตัดมากกว่าที่รับเข้า หรือสต็อกในชีตถูกแก้ด้วยมือ':' (ถ้าตัวเลขนี้ไม่ตรงกับที่เคยตั้งไว้ตอนแรก แปลว่าสต็อกเคยถูกแก้นอกระบบ)'}</p>
+ <div class="wrap" style="max-height:52vh;overflow:auto"><table><tr><th>วันที่</th><th>รายการ</th><th>จำนวน</th><th>คงเหลือหลังรายการ</th><th>หมายเหตุ</th></tr>${rows||'<tr><td colspan="5">ยังไม่มีความเคลื่อนไหว</td></tr>'}</table></div>
+ <div style="text-align:right;margin-top:14px"><button class="b" onclick="$('#ledm').remove()">ปิด</button></div></div>`;document.body.appendChild(m)}
 // ---------- ขายทศนิยม (เช่น 0.5 กก.) ----------
 let sdt='';
 const nowL=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16)};

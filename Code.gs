@@ -129,6 +129,18 @@ function doPost(e) {
       if (r < 0) cx.appendRow(vals); else cx.getRange(r, 1, 1, 2).setValues([vals]);
       v = bump();
     }
+    if (d.action == 'fixIds') {            // สร้างรหัสใหม่ให้สินค้าที่รหัสซ้ำ/ว่าง (รายการแรกยังใช้รหัสเดิม)
+      const n = px.getLastRow();
+      if (n > 1) {
+        const rg = px.getRange(2, 1, n - 1, 2).getValues(), seen = {}; let ch = 0;
+        rg.forEach((r, i) => {
+          let id = String(r[0] === undefined ? '' : r[0]).trim();
+          if (String(r[1]).trim() && (!id || seen[id])) { r[0] = 'p' + Date.now() + '_' + (i + 2); ch++; }
+          seen[String(r[0])] = 1;
+        });
+        if (ch) { px.getRange(2, 1, n - 1, 2).setValues(rg); v = bump(); }
+      }
+    }
     if (d.action == 'delete') { const r = find(px, d.id); if (r > 0) { px.deleteRow(r); v = bump(); } }
   } finally { lock.releaseLock(); }
   return out({ ok: 1, ver: v });
